@@ -1,0 +1,8 @@
+{
+  "name": "silent-apartment-2d-cast",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@napi-rs/canvas": "1.2.0"
+  }
+}

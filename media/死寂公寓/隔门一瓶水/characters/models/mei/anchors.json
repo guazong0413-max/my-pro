@@ -1,0 +1,199 @@
+{
+  "headPivotRule": "The head rotates around its neck anchor. Angles are in degrees in the SVG x-right/y-down space.",
+  "name": "小美",
+  "height": 171.2,
+  "viewport": [
+    -35,
+    -10,
+    70,
+    190.2
+  ],
+  "views": {
+    "front": {
+      "left-leg-thigh": {
+        "pivot": [
+          -6.66,
+          96.07
+        ],
+        "parent": null
+      },
+      "left-leg-shin": {
+        "pivot": [
+          -6.9,
+          130.56
+        ],
+        "parent": "left-leg-thigh"
+      },
+      "left-leg-shoe": {
+        "pivot": [
+          -7.9,
+          164.41
+        ],
+        "parent": "left-leg-shin"
+      },
+      "right-leg-thigh": {
+        "pivot": [
+          6.82,
+          96.17
+        ],
+        "parent": null
+      },
+      "right-leg-shin": {
+        "pivot": [
+          7.1,
+          130.2
+        ],
+        "parent": "right-leg-thigh"
+      },
+      "right-leg-shoe": {
+        "pivot": [
+          7.6,
+          164.37
+        ],
+        "parent": "right-leg-shin"
+      },
+      "left-arm-upper": {
+        "pivot": [
+          -13.1,
+          41.4
+        ],
+        "parent": null
+      },
+      "left-arm-fore": {
+        "pivot": [
+          -16.23,
+          65.56
+        ],
+        "parent": "left-arm-upper"
+      },
+      "left-arm-hand": {
+        "pivot": [
+          -17.33,
+          88.82
+        ],
+        "parent": "left-arm-fore"
+      },
+      "right-arm-upper": {
+        "pivot": [
+          13.42,
+          41.17
+        ],
+        "parent": null
+      },
+      "right-arm-fore": {
+        "pivot": [
+          16.22,
+          65.42
+        ],
+        "parent": "right-arm-upper"
+      },
+      "right-arm-hand": {
+        "pivot": [
+          17.23,
+          88.75
+        ],
+        "parent": "right-arm-fore"
+      },
+      "head": {
+        "pivot": [
+          0,
+          31
+        ],
+        "parent": null
+      }
+    },
+    "side": {
+      "left-leg-thigh": {
+        "pivot": [
+          -4.37,
+          96.8
+        ],
+        "parent": null
+      },
+      "left-leg-shin": {
+        "pivot": [
+          -4.64,
+          131.09
+        ],
+        "parent": "left-leg-thigh"
+      },
+      "left-leg-shoe": {
+        "pivot": [
+          -5.47,
+          164.32
+        ],
+        "parent": "left-leg-shin"
+      },
+      "right-leg-thigh": {
+        "pivot": [
+          0.68,
+          96.83
+        ],
+        "parent": null
+      },
+      "right-leg-shin": {
+        "pivot": [
+          1.19,
+          130.34
+        ],
+        "parent": "right-leg-thigh"
+      },
+      "right-leg-shoe": {
+        "pivot": [
+          1.46,
+          164.45
+        ],
+        "parent": "right-leg-shin"
+      },
+      "left-arm-upper": {
+        "pivot": [
+          -4.3,
+          41.72
+        ],
+        "parent": null
+      },
+      "left-arm-fore": {
+        "pivot": [
+          -3.93,
+          65.79
+        ],
+        "parent": "left-arm-upper"
+      },
+      "left-arm-hand": {
+        "pivot": [
+          -1.77,
+          88.95
+        ],
+        "parent": "left-arm-fore"
+      },
+      "right-arm-upper": {
+        "pivot": [
+          0.92,
+          41.29
+        ],
+        "parent": null
+      },
+      "right-arm-fore": {
+        "pivot": [
+          0.43,
+          65.95
+        ],
+        "parent": "right-arm-upper"
+      },
+      "right-arm-hand": {
+        "pivot": [
+          4.33,
+          89.55
+        ],
+        "parent": "right-arm-fore"
+      },
+      "head": {
+        "pivot": [
+          0.3,
+          31
+        ],
+        "parent": null
+      }
+    }
+  }
+}
