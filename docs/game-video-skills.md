@@ -1,8 +1,8 @@
-# 游戏开发与影像创作工具
+# 游戏学习资料、影像制作与通用工具
 
 记录日期为 2026-11-24，安装环境为 Apple Silicon Mac。表中的 Skill 链接均固定到实际安装的源码版本。
 
-## 14 个 Codex Skill
+## 游戏开发学习资料（10 个 Skill）
 
 | Skill | 方向 | 可以用来做什么 | 安装来源 |
 | --- | --- | --- | --- |
@@ -16,21 +16,36 @@
 | `survival-crafting` | 生存建造 | 串联采集、背包、合成配方、基地建造和生存需求。 | [SKILL.md](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/c6ca6c41c839b68319ffc08430b99ab768debc32/skills/genres/survival-crafting/SKILL.md) |
 | `puzzle` | 解谜 / 益智 | 实现谜题规则、撤销、解法验证和关卡难度递进。 | [SKILL.md](https://github.com/gamedev-skills/awesome-gamedev-agent-skills/blob/c6ca6c41c839b68319ffc08430b99ab768debc32/skills/genres/puzzle/SKILL.md) |
 | `pixelfx` | 像素特效 | 选择和调整像素粒子、颜色、时间与发光层，导出游戏可用的透明图集。 | [SKILL.md](https://github.com/patch-gg/pixelfx/blob/5294518ce7c72e48b6100a744596e0acf57f2826/skills/pixelfx/SKILL.md) |
+
+## 影像与 3D 制作（4 个 Skill）
+
+| Skill | 方向 | 可以用来做什么 | 安装来源 |
+| --- | --- | --- | --- |
 | `3d-asset-generation` | 3D 资产 | 从参考图或文字规划网格、贴图与重建，记录资产来源并检查导入效果。 | [SKILL.md](https://github.com/OpenMontageInc/OpenMontage/blob/2e003e65fa99a0f329478a2c1cdcf26bc481933a/.agents/skills/3d-asset-generation/SKILL.md) |
 | `seedance-2-5` | Seedance 视频 | 把镜头动作、角色参考图和声音约束整理为生成请求，控制镜头间的连续性。 | [SKILL.md](https://github.com/OpenMontageInc/OpenMontage/blob/2e003e65fa99a0f329478a2c1cdcf26bc481933a/.agents/skills/seedance-2-5/SKILL.md) |
 | `kling-official` | 可灵官方接口 | 按可灵工作流组织图片、视频、配音、数字人与口型同步请求。 | [SKILL.md](https://github.com/OpenMontageInc/OpenMontage/blob/2e003e65fa99a0f329478a2c1cdcf26bc481933a/.agents/skills/kling-official/SKILL.md) |
 | `video-edit` | 本地剪辑 | 用 FFmpeg 与 ffprobe 剪切、拼接、裁剪、换音轨、压缩并核对导出参数。 | [SKILL.md](https://github.com/OpenMontageInc/OpenMontage/blob/2e003e65fa99a0f329478a2c1cdcf26bc481933a/.agents/skills/video-edit/SKILL.md) |
 
-14 个目录均已安装到当前用户的 `~/.codex/skills/`，逐文件 SHA-256 与上游固定提交相符。新一轮 Codex 对话可按名称调用，例如“用 `visual-novel` 把三场戏做成两个结局”。
+14 个目录均已安装到当前用户的 `~/.codex/skills/`，逐文件 SHA-256 与上游固定提交相符。下一条 Codex 消息即可按名称调用，例如“用 `visual-novel` 把三场戏做成两个结局”。
 
-## 7 个配套工具
+## 两个游戏美术学习工具
 
 | 工具 | 功能与适用环节 | 项目与安装入口 |
 | --- | --- | --- |
 | 像素造物台 Pixel Atelier | 用现有角色做像素动作、调帧、设置锚点和导出。工作台内生成新动作使用支持生图的 Codex CLI。 | [源码与工作台说明](https://github.com/jinxingtaire/pixel-atelier/tree/15d199f68e6657af0873b3c950525c4bf28eed6f) |
 | pixelfx | 游戏像素特效库与渲染工具。效果可在引擎中实时代码绘制，也可导出 PNG 图集、动画参数、GIF 或 MP4。 | [源码与示例](https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826) |
+
+## 影像制作工具
+
+| 工具 | 功能与适用环节 | 项目与安装入口 |
+| --- | --- | --- |
 | OpenMontage | 用剧本、分镜板和素材编排视频，连接模型供应商，使用 Remotion 或 FFmpeg 渲染。 | [源码与中文说明](https://github.com/OpenMontageInc/OpenMontage/blob/2e003e65fa99a0f329478a2c1cdcf26bc481933a/README_zh-CN.md) |
-| T3 Code | 在桌面管理 AI 编码会话、项目和并行开发任务，用于制作游戏时查看改动。 | [项目](https://github.com/pingdotgg/t3code) · [macOS 版本](https://github.com/pingdotgg/t3code/releases/tag/v0.1.11) |
+
+## 通用开发与桌面工具
+
+| 工具 | 功能与适用环节 | 项目与安装入口 |
+| --- | --- | --- |
+| T3 Code | 在桌面管理 AI 编码会话、项目和并行开发任务，用于查看代码改动。 | [项目](https://github.com/pingdotgg/t3code) · [macOS 版本](https://github.com/pingdotgg/t3code/releases/tag/v0.1.11) |
 | OpenMausBot | 在虚拟办公室组织有不同职责的智能体。外部办公应用、云端虚拟机与模型按所选功能单独接入。 | [项目](https://github.com/milind-soni/OpenMausBot) · [官方下载](https://www.openmausbot.com/download) |
 | ThinkRail | JetBrains 的 AI 开发环境，把需求拆为任务，在隔离的 Git 工作区实施并审查。 | [项目](https://github.com/JetBrains/thinkrail) · [macOS 版本](https://github.com/JetBrains/thinkrail/releases/tag/v0.4.0) |
 | Vorssaint | macOS 菜单栏工具，可按需启用窗口管理、剪贴板和文件暂存等功能。 | [项目](https://github.com/vorssaint/vorssaint-utils) · [macOS 版本](https://github.com/vorssaint/vorssaint-utils/releases/tag/v3.4.4) |
