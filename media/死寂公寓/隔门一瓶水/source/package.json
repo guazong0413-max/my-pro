@@ -1,0 +1,9 @@
+{
+  "name": "silent-apartment-water",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Original 2D animated short",
+  "dependencies": {
+    "@napi-rs/canvas": "1.2.0"
+  }
+}
