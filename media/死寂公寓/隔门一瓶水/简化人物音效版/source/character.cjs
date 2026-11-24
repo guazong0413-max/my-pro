@@ -122,54 +122,67 @@ function contour(g,a,k,z,widths,fill){
 
 function cast(b) {
   const {g,path,line,ell,at,glow}=b;
+  const layer=b.layer??((_id,draw)=>draw());
 
   function head(name,x,y,angle,{t=0,mouth=0,front=false,pose=null}={}){
     const c=CAST[name];
     const drawing=front&&name==="yu"?FRONT_YU:c;
     const e=expression(name,t,pose);
     const ink="#2c272a";
-    at(x,y,1,1,angle,()=>{
-      path("M-6 6 H6 L7 15 Q1 18 -7 14Z",c.shade);
+    layer("head",()=>at(x,y,1,1,angle,()=>{
+      layer("neck",()=>path("M-6 6 H6 L7 15 Q1 18 -7 14Z",c.shade));
       if(name==="mei"){
-        ell(-13.7,-25,8.6,9.0,c.hair);
-        path("M-20 -24 Q-15 -29 -9 -27",null,"#4a3a3e",1.35);
+        layer("hair-bun",()=>{
+          ell(-13.7,-25,8.6,9.0,c.hair);
+          path("M-20 -24 Q-15 -29 -9 -27",null,"#4a3a3e",1.35);
+        });
       }
-      path(drawing.face,c.skin);
-      path(drawing.crown,c.hair);
-      if(name==="yu"){
-        path(front?"M-12 -17 Q-4 -23 7 -20":"M-12 -14 Q-7 -20 3 -19",null,"#3d424b",1.64);
-      }
-      if(name==="son")ell(10.0,3.2,2.05,1.14,"#c69983");
+      layer("face",()=>path(drawing.face,c.skin));
+      layer("hair",()=>{
+        path(drawing.crown,c.hair);
+        if(name==="yu"){
+          path(front?"M-12 -17 Q-4 -23 7 -20":"M-12 -14 Q-7 -20 3 -19",null,"#3d424b",1.64);
+        }
+      });
+      if(name==="son")layer("cheek",()=>ell(10.0,3.2,2.05,1.14,"#c69983"));
       if(name==="uncle"){
-        path("M-9 -1 Q-5 6 2 7 Q8 6 12 6 L18.5 5.75 Q18 12 14 15 L2 16 Q-7 14 -11 5Z","#4f443d");
-        path("M-5 7 Q.5 12 6 12",null,"#806e5c",1.75);
-        path("M-16 -4 Q-22 -23 -7 -27 Q3 -30 11 -23",null,"#434449",2.8);
-        ell(-12.4,-1.5,5.3,7.1,"#3f484e");
-        ell(-13,-2,2.7,4.65,"#596068");
-        path("M-10 3 Q-6 10 8 11",null,"#303237",1.85);
-        ell(8.4,11,2,1.2,"#343438");
+        layer("beard",()=>{
+          path("M-9 -1 Q-5 6 2 7 Q8 6 12 6 L18.5 5.75 Q18 12 14 15 L2 16 Q-7 14 -11 5Z","#4f443d");
+          path("M-5 7 Q.5 12 6 12",null,"#806e5c",1.75);
+        });
+        layer("headset",()=>{
+          path("M-16 -4 Q-22 -23 -7 -27 Q3 -30 11 -23",null,"#434449",2.8);
+          ell(-12.4,-1.5,5.3,7.1,"#3f484e");
+          ell(-13,-2,2.7,4.65,"#596068");
+          path("M-10 3 Q-6 10 8 11",null,"#303237",1.85);
+          ell(8.4,11,2,1.2,"#343438");
+        });
       }
       for(let i=0;i<drawing.eyes.length;i++){
         const [ex,ey]=drawing.eyes[i];
         const side=drawing.eyes.length===2&&i===1?-1:1;
         const by=ey-4.1+e.brow;
         const w=name==="uncle"?2.9:2.4;
-        path("M"+(ex-w*side)+" "+(by-e.slant*.45)+" Q"+ex+" "+(by-.4)+" "+(ex+w*side)+" "+(by+e.slant*.53),null,ink,c.brow);
+        layer("brow-"+(i+1),()=>path("M"+(ex-w*side)+" "+(by-e.slant*.45)+" Q"+ex+" "+(by-.4)+" "+(ex+w*side)+" "+(by+e.slant*.53),null,ink,c.brow));
         const size=name==="son"?1.43:name==="yu"?1.53:1.44;
-        if(e.blink)line([[ex-1.45,ey],[ex+1.45,ey]],ink,.84);
-        else ell(ex,ey,size,size,ink);
+        layer("eye-"+(i+1),()=>{
+          if(e.blink)line([[ex-1.45,ey],[ex+1.45,ey]],ink,.84);
+          else ell(ex,ey,size,size,ink);
+        });
       }
       const [mx,my,width]=drawing.mouth;
       const open=mouth>.20||e.mouth==="round";
       const lips=name==="uncle"?"#c1967b":"#705046";
-      if(open){
-        const strong=mouth>.56&&name==="yu";
-        ell(mx,my,(strong?.76:.59)*width,strong?1.33:.94,lips);
-      } else {
-        const bend=e.mouth==="frown"?-.69:e.mouth==="soft"?.77:0;
-        path("M"+(mx-width)+" "+my+" Q"+mx+" "+(my+bend)+" "+(mx+width)+" "+(my-.11),null,lips,e.mouth==="press"?.99:.79);
-      }
-    });
+      layer("mouth",()=>{
+        if(open){
+          const strong=mouth>.56&&name==="yu";
+          ell(mx,my,(strong?.76:.59)*width,strong?1.33:.94,lips);
+        } else {
+          const bend=e.mouth==="frown"?-.69:e.mouth==="soft"?.77:0;
+          path("M"+(mx-width)+" "+my+" Q"+mx+" "+(my+bend)+" "+(mx+width)+" "+(my-.11),null,lips,e.mouth==="press"?.99:.79);
+        }
+      });
+    }));
   }
 
   function hand(c,wrist,elbow,angle){
@@ -230,18 +243,24 @@ function cast(b) {
       for(const [i,f] of footData.entries()){
         const a=add(pelvis,hips[i]),z=ankle(f);
         const sol=solve(a,z,...c.legs,-1),far=i===0;
-        contour(g,a,sol.joint,sol.end,c.legWidths,far?"#2d3743":c.pants);
-        if(name==="son"&&!far)line([point(a,sol.joint,.46),sol.joint,point(sol.joint,sol.end,.82)],c.collar,1.05);
-        shoe(c,sol.end,f.roll||0,far);
+        const side=far?"far":"near";
+        layer(side+"-leg",()=>{
+          contour(g,a,sol.joint,sol.end,c.legWidths,far?"#2d3743":c.pants);
+          if(name==="son"&&!far)line([point(a,sol.joint,.46),sol.joint,point(sol.joint,sol.end,.82)],c.collar,1.05);
+        });
+        layer(side+"-shoe",()=>shoe(c,sol.end,f.roll||0,far));
         tests.push({kind:"leg",anchor:world(a),joint:world(sol.joint),end:world(sol.end),target:world(z),contact:f.p,ground:f.ground,error:sol.error,scale:s,lengths:c.legs});
       }
       function sleeve(a,target,far,angle){
         const sol=solve(a,target,...c.arms,1);
         const shoulder=add(a,mul(unit(sub(a,sol.joint)),2.0));
         const widths=far?c.sleeveWidths.map(w=>w*.9):c.sleeveWidths;
-        contour(g,shoulder,sol.joint,sol.end,widths,far?c.far:c.sleeve);
-        if(name==="son"&&!far)line([point(a,sol.joint,.17),sol.joint,point(sol.joint,sol.end,.82)],c.collar,1.20);
-        hand(c,sol.end,sol.joint,angle);
+        const side=far?"far":"near";
+        layer(side+"-sleeve",()=>{
+          contour(g,shoulder,sol.joint,sol.end,widths,far?c.far:c.sleeve);
+          if(name==="son"&&!far)line([point(a,sol.joint,.17),sol.joint,point(sol.joint,sol.end,.82)],c.collar,1.20);
+        });
+        layer(side+"-hand",()=>hand(c,sol.end,sol.joint,angle));
         tests.push({kind:"arm",anchor:world(a),joint:world(sol.joint),end:world(sol.end),target:world(target),error:sol.error,scale:s,lengths:c.arms});
       }
       const shoulder=bodyPoint(c.shoulder),farShoulder=bodyPoint(c.otherShoulder);
@@ -249,7 +268,7 @@ function cast(b) {
       sleeve(farShoulder,farWrist?local(farWrist):add(farShoulder,[4+step*3,hang-2.4]),true,null);
       const h=bodyPoint(c.head);
       head(name,...h,lean*.42+headTilt,{t,mouth,front,pose});
-      at(...pelvis,1,1,lean,()=>jacket(name,c));
+      layer("torso",()=>at(...pelvis,1,1,lean,()=>jacket(name,c)));
       const nearWrist=front&&!wrist?add(shoulder,[-13.6,hang-3]):add(shoulder,[1.4+step*5.3,hang]);
       sleeve(shoulder,wrist?point(nearWrist,local(wrist),wristBlend):nearWrist,false,handAngle);
     });

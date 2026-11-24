@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 116 220" width="464" height="880" stroke-linecap="round" stroke-linejoin="round" role="img">
+  <title>小旭 · 侧面</title>
+  <g transform="translate(58 203) scale(0.69 0.69)">
+    <g id="far-leg">
+      <path d="M-9.99317 -73.85373 L-7.24577 -47.77511 Q-6.8644 -40.52559 -8.37558 -33.32286 L-12.57575 -8.58246 L-5.42425 -7.11754 L0.44135 -31.5168 Q2.10883 -39.83186 1.74398 -48.20452 L1.99317 -74.42627 Z" fill="#2d3743"/>
+    </g>
+    <g id="far-shoe">
+      <g transform="translate(-9 -1.85)">
+        <path d="M-5.9 .8 L-5.7 -5.6 Q-3 -7.8 3.9 -6.25 L7 -3.85 Q11 -2.4 13.6 -2.35 Q16 -2 16 .4 L15.8 1.85 H-5.9Z" fill="#38516a"/>
+        <path d="M-5.9 .25 H16 L15.8 1.85 H-5.9Z" fill="#c1beb2"/>
+      </g>
+    </g>
+    <g id="near-leg">
+      <path d="M-4.48305 -74.23935 L-1.02097 -48.24596 Q-0.44624 -40.757 -0.93049 -33.16143 L-1.64293 -8.07715 L5.64293 -7.62285 L8.05206 -32.60134 Q8.55357 -40.81507 7.95361 -48.92193 L7.48305 -75.14065 Z" fill="#385771"/>
+      <polyline points="2.67469,-59.09418 4.05367,-40.78604 2.36966,-13.77849" fill="none" stroke="#d0d4cb" stroke-width="1.05"/>
+    </g>
+    <g id="near-shoe">
+      <g transform="translate(2 -1.85)">
+        <path d="M-5.9 .8 L-5.7 -5.6 Q-3 -7.8 3.9 -6.25 L7 -3.85 Q11 -2.4 13.6 -2.35 Q16 -2 16 .4 L15.8 1.85 H-5.9Z" fill="#454f5b"/>
+        <path d="M-5.9 .25 H16 L15.8 1.85 H-5.9Z" fill="#c1beb2"/>
+      </g>
+    </g>
+    <g id="far-sleeve">
+      <path d="M-1.3505 -124.42314 L-5.22091 -106.28051 Q-6.99496 -99.00571 -3.77626 -93.32422 L5.14391 -81.90874 L10.85609 -85.67126 L3.8901 -98.37391 Q2.0921 -100.30867 3.5555 -103.58851 L10.52348 -120.78101 Z" fill="#38516a"/>
+    </g>
+    <g id="far-hand">
+      <g transform="translate(8 -83.79) rotate(56.62784)">
+        <ellipse cx="1.825" cy="0" rx="3.65" ry="3.33" fill="#cfaa91"/>
+      </g>
+    </g>
+    <g id="head">
+      <g transform="translate(1 -141.19)">
+        <g id="neck">
+          <path d="M-6 6 H6 L7 15 Q1 18 -7 14Z" fill="#ad8a78"/>
+        </g>
+        <g id="face">
+          <path d="M-14 -6 Q-14 -17 -4 -20 Q9 -23 14 -13 Q16 -9 15.8 -4 L18.8 .15 Q19 1.7 16 2.7 Q15 11 9 13 Q3 16 -6 12 Q-13 9 -14 -6Z" fill="#cfaa91"/>
+        </g>
+        <g id="hair">
+          <path d="M-13 5 Q-18 3 -18 -9 Q-17 -20 -5 -23 Q7 -26 14 -17 Q17 -14 16 -8 Q12 -10 8 -12 Q2 -15 -3 -11 L-7 -7 L-9 0 Q-10 5 -13 5Z" fill="#292b34"/>
+        </g>
+        <g id="cheek">
+          <ellipse cx="10" cy="3.2" rx="2.05" ry="1.14" fill="#c69983"/>
+        </g>
+        <g id="brow-1">
+          <path d="M7.6 -7.55 Q10 -7.95 12.4 -7.55" fill="none" stroke="#2c272a" stroke-width="0.82"/>
+        </g>
+        <g id="eye-1">
+          <ellipse cx="10" cy="-3.45" rx="1.43" ry="1.43" fill="#2c272a"/>
+        </g>
+        <g id="mouth">
+          <path d="M11.55 6.5 Q13.25 6.5 14.95 6.39" fill="none" stroke="#705046" stroke-width="0.79"/>
+        </g>
+      </g>
+    </g>
+    <g id="torso">
+      <g transform="translate(0 -74.69)">
+        <path d="M-7 -54 Q-14 -53 -16 -44 Q-17 -37 -14 -28 L-12 -2 Q-12 2 -7 3 H10 Q14 2 14 -1 L14 -39 Q13 -50 7 -53 Q0 -49 -7 -54Z" fill="#537a99"/>
+        <path d="M-10 -50 L-7 -56 Q0 -53 6 -55 L10 -50 L7 -46 L0 -48 L-7 -45Z" fill="#d0d4cb"/>
+        <polyline points="2,-47 3,1" fill="none" stroke="#d0d4cb" stroke-width="1.25"/>
+      </g>
+    </g>
+    <g id="near-sleeve">
+      <path d="M-9.26102 -125.21273 L-11.72835 -106.80994 Q-13.11519 -99.9794 -11.28159 -94.25552 L-5.17624 -81.10529 L1.97624 -83.67471 L-1.68219 -97.70394 Q-2.9319 -100.56304 -1.79783 -104.48084 L4.17439 -122.0616 Z" fill="#436683"/>
+      <polyline points="-3.854,-118.04881 -8.02354,-100.27122 -2.75624,-85.60862" fill="none" stroke="#d0d4cb" stroke-width="1.2"/>
+    </g>
+    <g id="near-hand">
+      <g transform="translate(-1.6 -82.39) rotate(70.23999)">
+        <ellipse cx="1.825" cy="0" rx="3.65" ry="3.33" fill="#cfaa91"/>
+      </g>
+    </g>
+  </g>
+</svg>
