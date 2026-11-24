@@ -1,0 +1,9 @@
+{
+  "name": "silent-apartment-opening",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Opening ninety seconds of the 2D apartment short",
+  "dependencies": {
+    "@napi-rs/canvas": "1.2.0"
+  }
+}
