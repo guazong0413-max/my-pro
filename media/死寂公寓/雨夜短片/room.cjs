@@ -48,7 +48,7 @@ function curtains(c,amount,detail=1) {
 }
 
 function room(c,t,opening=0) {
-  night(c,"#263845","#142331");
+  night(c,"#233542","#12212c");
   rect(c,-960,floor,2880,775,grad(c,0,floor,0,floor+162,[[0,"#1d252b"],[1,"#0e161e"]]));
   rect(c,-960,floor-9,2880,8,"#293441");
   for(const y of [floor+9,floor+26,floor+51,floor+83]){
@@ -67,7 +67,11 @@ function room(c,t,opening=0) {
     rect(c,bx,by,47,sill-by,"#1c2a37");
     for(let k=0;k<4;k++)rect(c,bx+9,by+8+k*19,10,6,k===1&&j%2===0?"#69594c":"#1a2430");
   }
-  if(opening>.02)rain(c,t,{x:left,y:top,w:right-left,h:sill-top,count:50,strength:.56});
+  if(opening>.02){
+    glow(c,249,186,28,39,"rgba(183,158,119,.17)");
+    rect(c,247.3,184.3,3.4,3.2,"#a88f6d");
+    rain(c,t,{x:left,y:top,w:right-left,h:sill-top,count:50,strength:.56});
+  }
   line(c,[[262,top],[262,sill]],"#192a38",4.6);
   curtains(c,opening);
   line(c,[[left-6,sill+7],[right+8,sill+7]],"#3a4a52",2.0);
@@ -185,7 +189,7 @@ function curtainPortrait(t) {
   return {opening,grip,take,point};
 }
 
-function bed(c,t){
+function bedSetup(c,t){
   night(c,"#223442","#0a121b");
   rect(c,0,414,W,126,"#111c24");
   rect(c,18,414,W-33,3,"#253843");
@@ -218,12 +222,17 @@ function bed(c,t){
   }
 }
 
+function bed(c,t){
+  const follow=ease(5.36,8.25,t);
+  camera(c,482+52*follow,282+14*follow,1.035+.16*follow,()=>bedSetup(c,t));
+}
+
 function phone(c,t) {
   night(c,"#262831","#171a20");
   glow(c,463,278,236,219,"rgba(93,64,64,.26)");
   const focus=ease(8.25,9.08,t), angle=-.105+.031*focus;
   const bx=476+buzzing(t)*.27, by=274+5.5*(1-focus);
-  place(c,bx,by,1.39,()=>{
+  place(c,bx,by,1.33+.075*focus+.034*ease(10.3,12.86,t),()=>{
     round(c,-79,-164,158,328,19,"#1d2028","#48515a",1.65);
     round(c,-73,-158,146,316,16,grad(c,-50,-159,71,155,[[0,"#4c343e"],[.55,"#352c3b"],[1,"#2b242e"]]));
     round(c,-14,-150,28,4,2,"#242834");
@@ -250,7 +259,8 @@ function portrait(c,t,{after=false,lip=0}={}) {
   }
   const actor=makeActor("yu",after?483:429,493,5.85,after?-1:1,
     {lean:after?-.68:1.51,tilt:after?1.22:3.69});
-  camera(c,after?459:442,-370,1.0,()=>{
+  const close=after?ease(61.04,67.77,t):ease(12.87,15.35,t);
+  camera(c,(after?459:442)+(after?-8:10)*close,-370-11*close,1.006+.117*close,()=>{
     hero(c,actor,t,{lit:true,alert:after?.88:.41,lip});
   });
   if(!after)glow(c,661,461,144,122,"rgba(125,180,217,.18)");
@@ -268,11 +278,35 @@ function firstSteps(c,t) {
   return {actor:a,mode:"forward"};
 }
 
+function approachWindow(c,t){
+  const approach=ease(18.33,22.55,t);
+  const opening=.17;
+  const lean=14*approach;
+  const rootX=376, targetX=(261-71*opening+curtainX(opening))*.5;
+  camera(c,341-12*approach,224-19*approach,1.42+.32*approach,()=>{
+    room(c,t,opening);
+    place(c,rootX,floor,1.025,()=>{
+      path(c,"M-23 -140 Q-33 -128 -33 -111 L-26 -72 L-31 2 H31 L32 -63 L33 -111 Q32 -132 21 -138 L7 -147 L-8 -145Z",
+        grad(c,-28,-132,28,-88,[[0,"#303e49"],[1,"#182732"]]));
+      path(c,"M-13 -143 Q-.5 -138 11 -144 L15 -137 Q1 -129 -15 -137Z","#35444e");
+      line(c,[[-21,-134],[-25,-109],[-23,-84]],"#44535c",.58);
+      place(c,-lean,-159,1,()=>{
+        path(c,"M-5.2 5 L7.5 5.4 L9 19.4 Q1 23.1 -7.5 18.8Z","#3b4b53");
+        path(c,"M-19 -5 Q-18 -17 -8.3 -22 Q.4 -27 10.8 -21 Q21 -15 18.7 -3 Q17.5 6 11.8 10.8 Q6.1 15.5 -4.9 14 Q-14.4 13.4 -17.9 5.2Z","#19242e");
+        path(c,"M-15.7 -8 Q-13.3 -20 -2.4 -22.5 Q7.2 -24 12.5 -18",null,"#424d55",.83);
+      });
+    });
+  });
+  return {view:"rear-to-window",targetX,opening,left:261-71*opening,right:curtainX(opening)};
+}
+
 function pullAway(c,t) {
   const {opening,grip,take,point}=curtainPortrait(t);
   const bend=33*ease(58.76,59.72,t);
   const a=fromGait(t,retreatPlan,{dir:-1,drop:bend,lean:lerp(2.6,-3.4,ease(57.06,58.30,t)),wrist:take>.008?point:undefined,weight:.54});
-  camera(c,419+17*ease(57.4,58.56,t),296,1.19,()=>{
+  const track=route(t-.05,retreatPlan).root[0]-378.5;
+  const recoil=ease(58.52,59.75,t);
+  camera(c,408+.78*track,291+17*recoil,1.16+.103*recoil,()=>{
     room(c,t,opening);
     roomShadow(c,a);hero(c,a,t,{alert:.8});
   });
@@ -284,15 +318,22 @@ function hide(c,t) {
   const turning=t<69.20;
   const a=fromGait(t,hidePlan,{dir:turning?-1:1,drop:stand+sink,
     lean:turning?-2.82:2.40-5.4*ease(74.49,75.68,t)});
-  room(c,t);
-  roomShadow(c,a);hero(c,a,t,{alert:.38});
+  const track=route(t-.09,hidePlan).root[0]-464;
+  const drift=31*ease(76.12,81.6,t);
+  camera(c,480+.45*track+drift,270+11*ease(73.7,80.3,t),1.00+.11*ease(69.15,75.92,t),()=>{
+    room(c,t);
+    roomShadow(c,a);hero(c,a,t,{alert:.38});
+  });
   return {actor:a,mode:turning?"turn":"forward"};
 }
 
 function door(c,t) {
-  const lower=112*ease(83.6,87.32,t);
+  const lower=116*ease(82.94,87.32,t);
+  const at=events.knock.findLast(q=>t>=q)??-10;
+  const d=t-at;
+  const shake=d>=0&&d<.18?1.45*Math.sin(91*d)*Math.exp(-d*29):0;
   night(c);
-  camera(c,876,316+lower,2.18+.39*ease(82.9,87.25,t),()=>{
+  camera(c,873+6.5*ease(83.12,86.39,t),310+lower+shake,2.08+.49*ease(82.38,87.24,t),()=>{
     room(c,t);
     const visible=ease(82.26,83.34,t);
     const x=813,y=floor,w=119;
@@ -302,10 +343,8 @@ function door(c,t) {
     for(const offset of [-12,10]){
       rect(c,shadow+offset,y-.62,9.7,1.7,"#19202a");
     }
-    const event=events.knock.findLast(q=>t>=q)??-10;
-    const d=t-event;
     if(d<.22)line(c,[[818,y-37],[818-.52*Math.sin(d*117),y-3]],"rgba(148,129,103,.14)",.7);
   });
 }
 
-module.exports={bed,phone,portrait,firstSteps,pullAway,hide,door};
+module.exports={bed,phone,portrait,firstSteps,approachWindow,pullAway,hide,door};

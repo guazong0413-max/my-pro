@@ -58,6 +58,10 @@ for(let frame=0;frame<duration*fps;frame++){
     if(phase==="air"){
       assert(t>=events.railRelease && t<events.impact && hip[1]<soil,"Invalid flight interval");
       if(last?.state.phase==="air")assert(hip[1]>last.state.hip[1],"Figure rises during the fall");
+      const camera=state.camera;
+      const x=480+(hip[0]-camera.x)*camera.zoom, y=270+(hip[1]-camera.y)*camera.zoom;
+      assert(x>150 && x<800 && y>100 && y<432,"Camera loses the falling figure");
+      if(last?.state.phase==="air")assert(camera.y>=last.state.camera.y,"Camera tracks against the fall");
     }
     if(t>=events.impact){
       assert(hip[0]>planter.left && hip[0]<planter.right && hip[1]<soil,"Figure misses the planter");
@@ -101,7 +105,12 @@ for(let frame=0;frame<duration*fps;frame++){
       assert((mode==="backing"?-advance:advance)>=-.001,"Body direction changed against the action at "+t);
     }
   }
-  if(id==="window")assert(state.glass && state.view==="room-to-street","Window point of view is reversed");
+  if(id==="approach")assert(state.view==="rear-to-window" && state.targetX>state.left && state.targetX<state.right,
+    "Chen's eyeline misses the window");
+  if(id==="window"){
+    assert(state.glass && state.view==="room-to-street","Window point of view is reversed");
+    if(last?.id==="window")assert(state.camera.y<=last.state.camera.y,"The window view pans away from the balcony");
+  }
   last={id,state};
 }
 assert.equal(visited.size,story.shots.length);

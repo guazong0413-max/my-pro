@@ -22,7 +22,7 @@ function createRenderer(canvas,performance={}){
     phone:room.phone,
     wake:(g,t)=>room.portrait(g,t,{lip:lip(t)}),
     feet:room.firstSteps,
-    rule:(g,t)=>street.skyline(g,t,true),
+    approach:room.approachWindow,
     window:street.windowPOV,
     balcony:street.fallScene,
     planter:street.planterScene,
@@ -54,13 +54,6 @@ function createRenderer(canvas,performance={}){
       text(c,"死寂公寓",65,98,29,"#d5d5cc","left",true);
       text(c,"第一夜",67,126,13,"#abb7b7");
       text(c,"02:17",883,92,17,"#b5bfbd","right");
-      c.globalAlpha=1;
-    }
-    if(shot.id==="hide"){
-      c.globalAlpha=pulse(69.32,70.23,78.60,80.94,t);
-      rect(c,38,226,470,142,grad(c,37,241,508,241,[[0,"rgba(13,23,31,.83)"],[1,"rgba(13,23,31,0)"]]));
-      line(c,[[61,244],[61,340]],"#ad7d69",2.1);
-      text(c,"先藏好自己",78,294,34,"#deded2","left",true);
       c.globalAlpha=1;
     }
     if(shot.id==="end"){

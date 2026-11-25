@@ -1,6 +1,6 @@
 "use strict";
 
-const {clamp,lerp,ease,pulse,path,rect,ell,line,poly,text,grad,glow,place,rand}=require("../开篇九十秒/drawing.cjs");
+const {clamp,lerp,ease,path,rect,ell,line,poly,grad,glow,place,rand}=require("../开篇九十秒/drawing.cjs");
 const {rotate,add,sub,mixPoint,solve,continuousLimb}=require("../人物动作/rig.cjs");
 const {W,H,camera,night,rain}=require("./art.cjs");
 const {events}=require("./story.json");
@@ -18,7 +18,7 @@ const fallenPalms={left:[590,soil-4.1],right:[642,soil-3.75]};
 const bracedPalms={left:[600,soil-3.4],right:[627,soil-3.4]};
 const weightOnHands=48.70, handsOff=50.55;
 
-function windows(c,x,y,w,h,columns,rows,{focal=-1,reveal=0}={}){
+function windows(c,x,y,w,h,columns,rows){
   const gap=5, sx=(w-12)/columns, sy=(h-11)/rows;
   rect(c,x,y,w,h,"#293d4a");
   for(let row=0;row<rows;row++){
@@ -26,50 +26,39 @@ function windows(c,x,y,w,h,columns,rows,{focal=-1,reveal=0}={}){
     rect(c,x+1,y+row*sy,w-2,sy*.12,over>.47?"#354b59":"#304653");
     for(let k=0;k<columns;k++){
       const ox=x+6+k*sx, oy=y+4+row*sy;
-      const warm=rand(k*17+row*43)> .937, i=row*columns+k;
-      const luminous=i===focal&&reveal>0;
-      rect(c,ox,oy,sx-gap,sy-gap+1,luminous?"#c9d8d5":warm?"#745943":"#162633");
-      if(warm&&!luminous)rect(c,ox+2,oy,sx-gap-4,sy-gap+1,"#7d5e46");
-      else if(!luminous)poly(c,[[ox,oy+sy*.58],[ox+sx*.54,oy],[ox+sx*.78,oy],[ox+sx*.2,oy+sy-gap]],"rgba(105,129,146,.075)");
+      const warm=rand(k*17+row*43)>.937;
+      rect(c,ox,oy,sx-gap,sy-gap+1,warm?"#745943":"#162633");
+      if(warm)rect(c,ox+2,oy,sx-gap-4,sy-gap+1,"#7d5e46");
+      else poly(c,[[ox,oy+sy*.58],[ox+sx*.54,oy],[ox+sx*.78,oy],[ox+sx*.2,oy+sy-gap]],"rgba(105,129,146,.075)");
       line(c,[[ox+(sx-gap)*.51,oy],[ox+(sx-gap)*.51,oy+sy-gap+1]],warm?"#513f35":"#273d4a",.75);
-      if(luminous)glow(c,ox+sx*.4,oy+sy*.4,77*reveal,61*reveal,"rgba(225,233,223,.32)");
     }
   }
 }
 
-function skyline(c,t,visibleRule=false) {
-  night(c,"#1c303d","#111b25");
+function skyline(c,t) {
   const trace=ease(0,5.36,t);
-  for(let i=0;i<10;i++){
-    const x=i*112-96+12*rand(i+31), y=173+140*rand(i+45);
-    rect(c,x,y,77+small(i,32),H-y,"#172631");
-    rect(c,x+2,y+2,2.2,H-y,"rgba(89,109,126,.11)");
-    for(let j=0;j<8;j++){
-      if(rand(i*11+j*5+34)>.20)continue;
-      rect(c,x+14+(j%2)*27,y+31+j*20,4,5,"#6e5a47");
+  camera(c,482-9*trace,273-8*trace,1.01+.079*trace,()=>{
+    night(c,"#20313b","#101b23");
+    for(let i=0;i<10;i++){
+      const x=i*112-96+12*rand(i+31), y=173+140*rand(i+45);
+      rect(c,x,y,77+Math.floor(rand(i+75)*32),H-y,"#172631");
+      rect(c,x+2,y+2,2.2,H-y,"rgba(89,109,126,.11)");
+      for(let j=0;j<8;j++){
+        if(rand(i*11+j*5+34)>.20)continue;
+        rect(c,x+14+(j%2)*27,y+31+j*20,4,5,"#6e5a47");
+      }
     }
-  }
-  const bx=visibleRule?363:297-10*trace, by=visibleRule?-54:-68-13*trace;
-  glow(c,521,267,392,398,"rgba(104,141,166,.145)");
-  windows(c,bx,by,visibleRule?410:385,visibleRule?620:638,7,14,
-    {focal:visibleRule?50:-1,reveal:visibleRule?ease(18.43,19.21,t):0});
-  rect(c,bx-10,by,10,641,"#223542");
-  rect(c,bx+(visibleRule?410:385),by,13,641,"#21313e");
-  glow(c,122,493,96,97,"rgba(177,142,93,.13)");
-  glow(c,865,486,91,91,"rgba(132,119,96,.13)");
-  if(visibleRule){
-    const q=pulse(18.42,19.16,21.98,22.62,t);
-    c.save();c.globalAlpha=q;
-    ell(c,423,277,56,56,null,"rgba(182,199,197,.50)",.76);
-    line(c,[[166,274],[357,274]],"rgba(166,186,190,.23)",.82);
-    line(c,[[56,272],[56,359]],"#a77967",2);
-    text(c,"夜间遇险，先别开灯",72,314,24,"#dfded3","left",true);
-    c.restore();
-  }
-  rain(c,t,{strength:.75,count:164,seed:244});
+    const bx=298,by=-72;
+    glow(c,514,263,363,386,"rgba(104,141,166,.155)");
+    windows(c,bx,by,385,638,7,14);
+    rect(c,bx-10,by,10,641,"#223542");
+    rect(c,bx+385,by,13,641,"#21313e");
+    glow(c,122,493,96,97,"rgba(177,142,93,.13)");
+    glow(c,865,486,91,91,"rgba(132,119,96,.13)");
+  });
+  rain(c,.78*t,{strength:.66,count:144,seed:244});
+  rain(c,1.22*t,{strength:.58,count:40,seed:112});
 }
-
-function small(n,max){return Math.floor(rand(n+75)*max);}
 
 function facade(c,t) {
   const left=150,right=846,w=right-left;
@@ -154,18 +143,23 @@ function distantCar(c,x,y,direction,blue,t){
 
 function windowPOV(c,t) {
   night(c);
-  const x=627-27*ease(22.72,27.08,t),y=343;
-  camera(c,x,y,.72,()=>{
+  const follow=ease(24.33,27.08,t);
+  const x=lerp(555,522,follow),y=lerp(441,128,follow);
+  const zoom=lerp(.74,1.09,follow);
+  camera(c,x,y,zoom,()=>{
     facade(c,t);garden(c);
-    const police=-144+590*ease(22.72,27.08,t);
+    const police=155+505*ease(22.4,26.44,t);
     distantCar(c,police,552,1,true,t);
     distantCar(c,780,565,-1,false,t);
+    c.save();c.globalAlpha=.54+.46*follow;
     visitor(c,falling(t),t);
+    c.restore();
     garden(c,true);
   });
   rain(c,t,{strength:.64,count:160,seed:277});
-  const spread=ease(events.curtainOpen,23.42,t);
-  for(const [lo,hi] of [[0,224-29*spread],[739+17*spread,960]]){
+  const spread=ease(events.curtainOpen,23.55,t);
+  const lean=20*ease(22.86,26.84,t);
+  for(const [lo,hi] of [[0,232-59*spread-lean],[721+46*spread-lean,960]]){
     rect(c,lo,0,hi-lo,H,"#172631");
     for(let j=0;j<8;j++){
       const w=(hi-lo)/8,x0=lo+j*w;
@@ -173,12 +167,13 @@ function windowPOV(c,t) {
     }
     line(c,[[lo?lo:hi,0],[lo?lo+1:hi-1,H]],"#324854",2);
   }
-  rect(c,0,484,W,H-484,grad(c,0,484,0,H,[[0,"#233441"],[.10,"#162733"],[1,"#0e1923"]]));
+  const sill=lerp(475,531,follow);
+  rect(c,0,sill,W,H-sill,grad(c,0,sill,0,H,[[0,"#233441"],[.10,"#162733"],[1,"#0e1923"]]));
   for(let i=0;i<12;i++){
     const x0=235+rand(i+104)*504,y0=77+rand(i+417)*393;
     line(c,[[x0,y0-4],[x0-.6,y0+6]],"rgba(197,216,220,.22)",.6);
   }
-  return {view:"room-to-street",screenTarget:x,glass:true};
+  return {view:"room-to-street",glass:true,camera:{x,y,zoom}};
 }
 
 function legPosition(a,b,start,end,t) {
@@ -283,27 +278,33 @@ function impactSplash(c,t) {
 
 function fallScene(c,t) {
   night(c);
-  const drop=clamp((t-events.railRelease)/(events.impact-events.railRelease));
+  const release=events.railRelease;
+  const drop=clamp((t-release)/(events.impact-release));
+  const cameraDrop=clamp((t-release-.072)/(events.impact-release));
   const at=t-events.impact;
-  const shake=at>=0&&at<.2?2.3*Math.sin(82*at)*Math.exp(-at*24):0;
+  const shake=at>=0&&at<.24?5.2*Math.sin(77*at)*Math.exp(-at*21):0;
+  const x=lerp(522,559,ease(0,1,cameraDrop))+2.5*ease(30.25,33.68,t);
+  const y=lerp(128,415,cameraDrop**2)+16*ease(events.impact,events.impact+.48,t)+shake;
+  const zoom=1.09+.055*ease(28.1,33.92,t)-.215*ease(0,1,drop);
   const actor=falling(t);
   let state;
-  camera(c,lerp(522,553,ease(0,1,drop)),lerp(128,417,drop*drop)+shake,1.10-.18*ease(0,1,drop),()=>{
+  camera(c,x,y,zoom,()=>{
     facade(c,t);garden(c);
     state=visitor(c,actor,t);
     garden(c,true);impactSplash(c,t);
     if(t>=35.24)distantCar(c,732,566,-1,false,t);
   });
   rain(c,t,{strength:.85,count:156,seed:482});
-  return state;
+  return {...state,camera:{x,y,zoom}};
 }
 
 function planterScene(c,t) {
   night(c);
   const watching=ease(events.brace,events.stand+.8,t);
+  const creep=ease(37.34,46.32,t);
   const actor=falling(t);
   let state;
-  camera(c,553+25*watching,416-15*watching,1.56+.09*watching,()=>{
+  camera(c,550+27*creep+15*watching,421+4*creep-23*watching,1.48+.21*creep+.067*watching,()=>{
     facade(c,t);garden(c);
     ell(c,actor.hip[0],soil-1.3,58,3.6,"rgba(8,20,19,.33)");
     state=visitor(c,actor,t,{detail:true});
