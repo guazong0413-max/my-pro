@@ -3,21 +3,39 @@
 const assert = require("node:assert/strict");
 const {createCanvas} = require("../开篇九十秒/drawing.cjs");
 const {shots, FPS, frames, footsteps, mealEvents, ear} = require("./motion.cjs");
-const {distance, rotate, sub, bodyPoint, sole, drawHead} = require("./rig.cjs");
-const {drawSpoon} = require("./props.cjs");
+const {distance, rotate, sub, bodyPoint, sole, drawHead, drawSleeve, drawHand} = require("./rig.cjs");
+const {drawSpoon, drawBowl} = require("./props.cjs");
 
 const cross = (a,b) => a[0]*b[1]-a[1]*b[0];
-const mask = createCanvas(464,400), ctx = mask.getContext("2d");
+const sampleScale=7, origin=[194,130];
+const mask=createCanvas(480,406), ctx=mask.getContext("2d");
+ctx.lineCap="round";
+ctx.lineJoin="round";
+
 function pixels(draw) {
-  ctx.setTransform(1,0,0,1,0,0);
+  ctx.resetTransform();
   ctx.clearRect(0,0,mask.width,mask.height);
-  ctx.setTransform(8,0,0,8,-8*194,-8*123);
+  ctx.setTransform(sampleScale,0,0,sampleScale,-origin[0]*sampleScale,-origin[1]*sampleScale);
   draw(ctx);
   return ctx.getImageData(0,0,mask.width,mask.height).data;
 }
 
-let checked=0, contacts=0, rimFrames=0, lipFrames=0, cupFrames=0;
-let spoonHeadOverlap=0;
+function overlap(first, second, grip) {
+  let total=0;
+  for(let i=3;i<first.length;i+=4) {
+    if(first[i]<=150||second[i]<=150)continue;
+    if(grip){
+      const pixel=(i-3)/4;
+      const x=origin[0]+(pixel%mask.width+.5)/sampleScale;
+      const y=origin[1]+(Math.floor(pixel/mask.width)+.5)/sampleScale;
+      if(distance([x,y],grip)<6)continue;
+    }
+    total++;
+  }
+  return total;
+}
+
+let checked=0, contacts=0, mealFrames=0, dipFrames=0, lipFrames=0, cupFrames=0;
 for (const shot of shots) {
   let previous;
   for (let frame=0; frame<shot.to-shot.from; frame++) {
@@ -60,20 +78,25 @@ for (const shot of shots) {
       if (t>=mealEvents.pick&&t<=mealEvents.release) {
         assert(distance(rig.arms.right.end,spoon.handle)<.04,label+" hand slipped off the spoon");
       }
-      if (state.holdingBowl===1) {
-        assert(distance(rig.arms.left.end,bowl.hold)<.04,label+" hand slipped off the bowl");
-        rimFrames++;
-      }
-      if (t>=mealEvents.bite&&t<=mealEvents.bite+.126) {
-        assert(distance(spoon.tip,state.lip)<2.3&&spoon.tip[0]>state.faceEdge[0]+.65,label+" spoon misses lip clearance");
+      if (t>=mealEvents.bite&&t<=mealEvents.bite+.12) {
+        assert(distance(spoon.tip,state.lip)<2.45&&spoon.tip[0]>state.faceEdge[0]+.65,label+" spoon misses lip clearance");
         lipFrames++;
       }
-      if (t>=mealEvents.lift&&t<5.07) {
-        const head=pixels(c=>drawHead(c,rig)), utensil=pixels(c=>drawSpoon(c,spoon));
-        for (let i=3;i<head.length;i+=4) {
-          if (head[i]>=150&&utensil[i]>=150) spoonHeadOverlap++;
-        }
+
+      const sleeve=pixels(c=>drawSleeve(c,rig,"right"));
+      const hand=pixels(c=>drawHand(c,rig,"right"));
+      const head=pixels(c=>drawHead(c,rig));
+      const dish=pixels(c=>drawBowl(c,bowl,false));
+      const utensil=pixels(c=>drawSpoon(c,spoon));
+      assert.equal(overlap(sleeve,dish)+overlap(hand,dish),0,label+" sleeve or hand intersects the bowl");
+      assert.equal(overlap(sleeve,head)+overlap(hand,head)+overlap(utensil,head),0,label+" hand, sleeve or spoon intersects the head");
+      assert(overlap(sleeve,utensil,spoon.handle)<=2,label+" spoon intersects the sleeve beyond the grip");
+
+      if(overlap(dish,utensil)>0){
+        assert(t>=mealEvents.scoop-.35&&t<=mealEvents.lift+.024,label+" spoon entered the bowl outside the scoop");
+        dipFrames++;
       }
+      mealFrames++;
     }
 
     if (state.earPoint) {
@@ -95,6 +118,5 @@ for (const shot of shots) {
   }
 }
 assert.equal(checked,frames);
-assert.equal(spoonHeadOverlap,0,"A drawn spoon overlaps the child's head");
-assert(lipFrames>=3&&cupFrames>=55&&rimFrames>=190);
-console.log(JSON.stringify({checked,contacts,rimFrames,lipFrames,spoonHeadOverlap,cupFrames}));
+assert(lipFrames>=3&&cupFrames>=55&&dipFrames>=5&&mealFrames===324);
+console.log(JSON.stringify({checked,contacts,mealFrames,dipFrames,lipFrames,cupFrames}));

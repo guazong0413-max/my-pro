@@ -31,9 +31,9 @@ const clothes = {
   mei: {arm: [5.65, 4.25, 2.66], leg: [5.85, 3.84, 2.99], hand: [3.1, 2.65],
     sleeve: "#9c794d", farSleeve: "#806242", pants: "#424757", farPants: "#323945"},
   xu: {arm: [4.0, 3.03, 1.91], leg: [4.25, 3.06, 2.11], hand: [2.55, 2.36],
-    sleeve: "#507b98", farSleeve: "#3c5f76", pants: "#456984", farPants: "#33526a"},
+    sleeve: "#527d99", shoulder: "#476e8c", farSleeve: "#3c5f76", pants: "#456984", farPants: "#33526a"},
   uncle: {arm: [7.3, 5.6, 3.45], leg: [6.95, 4.75, 3.45], hand: [3.65, 3.2],
-    sleeve: "#566446", farSleeve: "#535d46", pants: "#505951", farPants: "#414846"}
+    sleeve: "#556346", shoulder: "#657155", farSleeve: "#535d46", pants: "#505951", farPants: "#414846"}
 };
 
 const index = Object.fromEntries(models.map(model => [model.id, Object.fromEntries(
@@ -152,7 +152,7 @@ function normal(a, b){
   return [-y/d,x/d];
 }
 
-function continuousLimb(ctx, {start, middle, end}, [top, joint, cuff], fill) {
+function continuousLimb(ctx, {start, middle, end}, [top, joint, cuff], fill, rounded = false) {
   const n0=normal(start,middle), n1=normal(middle,end);
   const blended=add(n0,n1), length=Math.hypot(...blended);
   const unit=length>1e-6?blended.map(x=>x/length):n0;
@@ -166,7 +166,12 @@ function continuousLimb(ctx, {start, middle, end}, [top, joint, cuff], fill) {
   ctx.lineTo(...side(end,n1,-cuff));
   ctx.lineTo(...side(b,n1,-joint));
   ctx.quadraticCurveTo(...side(middle,unit,-joint),...side(a,n0,-joint));
-  ctx.lineTo(...side(start,n0,-top));
+  const rootLeft=side(start,n0,-top), rootRight=side(start,n0,top);
+  ctx.lineTo(...rootLeft);
+  if (rounded) {
+    const back=[-n0[1],n0[0]];
+    ctx.bezierCurveTo(...side(rootLeft,back,top*.96),...side(rootRight,back,top*.96),...rootRight);
+  }
   ctx.closePath();
   ctx.fillStyle=fill;
   ctx.fill();
@@ -184,7 +189,15 @@ function drawLeg(ctx, rig, side) {
 function drawSleeve(ctx, rig, side) {
   const c=clothes[rig.id], arm=rig.arms[side];
   const near=side==="right";
-  continuousLimb(ctx,arm,near?c.arm:c.arm.map(w=>w*.91),near?c.sleeve:c.farSleeve);
+  const widths=near?c.arm:c.arm.map(w=>w*.91);
+  let fill=near?c.sleeve:c.farSleeve;
+  if (near && c.shoulder) {
+    const [x,y]=arm.start, radius=widths[0];
+    fill=ctx.createRadialGradient(x,y,radius*1.12,x,y,radius*2.72);
+    fill.addColorStop(0,c.shoulder);
+    fill.addColorStop(1,c.sleeve);
+  }
+  continuousLimb(ctx,arm,widths,fill,near && Boolean(c.shoulder));
   if(rig.id==="xu"&&near){
     ctx.beginPath();
     ctx.moveTo(...mixPoint(arm.start,arm.middle,.22));
@@ -220,21 +233,31 @@ function drawFarArm(ctx, rig) {
   drawHand(ctx, rig, "left");
 }
 
-function drawActor(ctx, rig, {overLegs, beforeNearHand, headset = false, farHandForward = false} = {}) {
+function drawTorso(ctx, rig) {
+  const items=rig.parts.get("torso").items;
+  ctx.save();
+  ctx.translate(...bodyPoint(rig,[0,0]));
+  ctx.rotate(rig.lean);
+  if (rig.id==="uncle") {
+    const [neck, neckShade, coat, sideShade, , ...details]=items;
+    shapes(ctx,[neck, neckShade, coat, sideShade, ...details]);
+    path(ctx,"M-7.67 33.25 Q-.96 35.84 6.59 34.78",null,"#7b876e",1.16,true);
+  } else {
+    shapes(ctx,items);
+  }
+  ctx.restore();
+}
+
+function drawActor(ctx, rig, {overLegs, beforeNearHand, headset = false} = {}) {
   for (const side of sides) drawLeg(ctx, rig, side);
   overLegs?.();
-  if (!farHandForward) drawFarArm(ctx, rig);
-  ctx.save();
-  ctx.translate(...bodyPoint(rig, [0, 0]));
-  ctx.rotate(rig.lean);
-  shapes(ctx, rig.parts.get("torso").items);
-  ctx.restore();
+  drawFarArm(ctx, rig);
+  drawTorso(ctx, rig);
   drawHead(ctx, rig, headset);
-  if (farHandForward) drawFarArm(ctx, rig);
   drawSleeve(ctx, rig, "right");
   beforeNearHand?.();
   drawHand(ctx, rig, "right");
 }
 
 module.exports = {radians, add, sub, mixPoint, rotate, distance, sides, sole, restFoot,
-  createRig, bodyPoint, headPoint, fitPelvis, placeLimbs, drawActor, drawHead};
+  createRig, bodyPoint, headPoint, fitPelvis, placeLimbs, drawActor, drawHead, drawSleeve, drawHand};

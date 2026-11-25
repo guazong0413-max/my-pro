@@ -3,12 +3,13 @@
 const {path, rect, round, line, ell, poly, grad, place} = require("../开篇九十秒/drawing.cjs");
 const {bottle: drawWaterBottle} = require("../开篇九十秒/places.cjs");
 const {drawActor} = require("./rig.cjs");
+const {mealDesk, mealEvents} = require("./motion.cjs");
 
-function desk(ctx, x, y) {
+function desk(ctx, x, y, depth = 8) {
   const w = 128;
   poly(ctx, [[x + 5, y + 3], [x + 11, y + 3], [x + 10, 236], [x + 6, 236]], "#554c45");
   poly(ctx, [[x + 98, y + 2], [x + 104, y + 2], [x + 107, 231], [x + 101, 231]], "#65564a");
-  poly(ctx, [[x + 4, y - 8], [x + w - 10, y - 8], [x + w, y], [x, y]],
+  poly(ctx, [[x + 4, y - depth], [x + w - 10, y - depth], [x + w, y], [x, y]],
     grad(ctx, x, y, x + w, y, [[0, "#a1866a"], [.59, "#82664f"], [1, "#6c5749"]]));
   rect(ctx, x, y, w, 5, "#6a5548");
   rect(ctx, x + 1, y + .45, w - 2, .7, "#c09d7d");
@@ -39,8 +40,8 @@ function water(ctx, state) {
   });
 }
 
-function drawBowl(ctx, {point: [x, y]}, less) {
-  place(ctx, x, y, 1, () => {
+function drawBowl(ctx, {point: [x, y], scale}, less) {
+  place(ctx, x, y, scale, () => {
     ell(ctx, 0, -.1, 13.9, 1.55, "rgba(32,29,26,.25)");
     path(ctx, "M-11.9 -6.3 Q-11.5 -2 -7.1 -.63 Q-.8 1.39 6.9 -.65 Q10.3 -1.9 12 -6.3Z", "#84908c", "#495e5f", .52);
     path(ctx, "M-10.6 -4.65 Q-5.2 -2.65 5.93 -3.39 Q8.3 -3.69 10.49 -5.1 M-5.16 -.94 Q-.91 -.2 4.17 -.92", null, "#afb2a6", .42);
@@ -52,8 +53,8 @@ function drawBowl(ctx, {point: [x, y]}, less) {
   });
 }
 
-function drawBowlFront(ctx, {point: [x,y]}) {
-  place(ctx,x,y,1,()=>{
+function drawBowlFront(ctx, {point: [x,y], scale}) {
+  place(ctx,x,y,scale,()=>{
     path(ctx,"M-11.9 -6.3 C-11.9 -4.25 -6.6 -2.9 0 -2.9 C6.6 -2.9 11.9 -4.25 12 -6.3 Q10.3 -1.9 6.9 -.65 Q-.8 1.39 -7.1 -.63 Q-11.5 -2 -11.9 -6.3Z","#84908c");
     path(ctx,"M-11.9 -6.3 C-11.9 -4.25 -6.6 -2.9 0 -2.9 C6.6 -2.9 11.9 -4.25 12 -6.3",null,"#c4c4b1",.53);
     path(ctx,"M-5.16 -.94 Q-.91 -.2 4.17 -.92",null,"#afb2a6",.42);
@@ -62,10 +63,13 @@ function drawBowlFront(ctx, {point: [x,y]}) {
 
 function drawSpoon(ctx, {point, angle, food}) {
   place(ctx,...point,1,()=>{
-    path(ctx,"M-4.95 -.4 Q-.12 -.61 3.43 -.75 Q4.45 -.75 4.40 -.04 Q4.32 .56 3.44 .65 L-4.95 .4Z","#8e9b9d","#536264",.27);
-    ell(ctx,-5.30,0,2.05,1.14,"#819094","#536467",.28);
-    path(ctx,"M-7.03 -.21 Q-5.75 -.79 -4.39 -.28 Q-5.18 .21 -6.72 .24", "#c0c9c5");
-    if(food) path(ctx,"M-6.94 -.37 Q-6.45 -1.19 -6.01 -1.08 Q-5.61 -1.91 -5.04 -1.65 Q-4.32 -1.58 -4.35 -.51 Q-4.79 .33 -5.50 .45 Q-6.85 .46 -6.94 -.37Z","#d9bc8e","#ae916f",.23);
+    path(ctx,"M-5.95 -.4 Q-.12 -.61 3.43 -.75 Q4.45 -.75 4.40 -.04 Q4.32 .56 3.44 .65 L-5.95 .4Z","#8e9b9d","#536264",.27);
+    ell(ctx,-6.40,0,2.08,1.20,"#819094","#536467",.28);
+    path(ctx,"M-8.18 -.22 Q-6.86 -.86 -5.40 -.30 Q-6.06 .21 -7.80 .25", "#c0c9c5");
+    if(food) {
+      ctx.translate(-1.05,0);
+      path(ctx,"M-6.94 -.37 Q-6.45 -1.19 -6.01 -1.08 Q-5.61 -1.91 -5.04 -1.65 Q-4.32 -1.58 -4.35 -.51 Q-4.79 .33 -5.50 .45 Q-6.85 .46 -6.94 -.37Z","#d9bc8e","#ae916f",.23);
+    }
   },false,angle);
 }
 
@@ -73,10 +77,9 @@ function meal(ctx, state, t) {
   const {rig,bowl,spoon}=state;
   chair(ctx);
   drawActor(ctx,rig,{
-    farHandForward:true,
-    overLegs:()=>desk(ctx,224,175),
+    overLegs:()=>desk(ctx,...mealDesk),
     beforeNearHand:()=>{
-      drawBowl(ctx,bowl,t>=4.19);
+      drawBowl(ctx,bowl,t>=mealEvents.bite+.09);
       drawSpoon(ctx,spoon);
       drawBowlFront(ctx,bowl);
     }
@@ -89,4 +92,4 @@ function foreground(ctx, shot, state, t) {
   else drawActor(ctx, state.rig, {headset: state.headset});
 }
 
-module.exports = {foreground, drawSpoon};
+module.exports = {foreground, drawSpoon, drawBowl};

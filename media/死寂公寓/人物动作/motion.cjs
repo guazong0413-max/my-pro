@@ -189,50 +189,67 @@ function handleBottle(t) {
   return {rig: placeLimbs(rig, feet, {right: {point: mixPoint(wrist, attachment, reach)}}), bottle: {point: [bx, by], angle, close}, reach};
 }
 
-const bowl = {point: [234.0, 175], hold: [220.6, 170.0]};
-const spoonHome = [236.7, 167.0, -9];
-const spoonTip = [-7.35, 0];
+const bowl = {point: [247.15, 173.55], scale: .79};
+const mealDesk = [221.4, 179.85, 14];
+const spoonHome = [233.65, 172.7, -151];
+const spoonSet = [239.15, 176.85, 43];
+const spoonTip = [-8.48, 0];
 const spoonGrip = [3.55, 0];
-const mealEvents = {pick: 1.81, scoop: 2.51, lift: 2.77, bite: 4.10, clear: 4.39, set: 7.84, release: 8.09};
-const mealCues = [[0, "neutral"], [.93, "doubt"], [2.65, "neutral"], [6.39, "relief"]];
+const mealEvents = {pick: 1.77, scoop: 2.65, lift: 2.91, cut: 2.97, bite: 4.10, clear: 4.46, set: 7.84, release: 8.09};
+const mealCues = [[0, "neutral"], [.80, "doubt"], [2.62, "neutral"], [6.36, "relief"]];
 
 function eat(t) {
-  const {pick, scoop, lift, bite, clear, set, release} = mealEvents;
-  const holdingBowl = pulse(.40, 1.22, 8.17, 9.18, t);
-  const reachSpoon = pulse(.82, pick, release, 9.12, t);
-  const chewing = pulse(4.53, 4.67, 5.89, 6.19, t);
-  const chew = chewing * Math.sin((t - 4.53) * 2 * Math.PI * 1.73);
-  const swallow = pulse(6.14, 6.31, 6.45, 6.68, t);
-  const face = faceAt("xu", mealCues, [.54, 3.55, 6.60, 9.63], t);
-  face.lift += .31 * pulse(.52, 1.51, 3.40, 3.89, t);
-  face.gaze += .18 * holdingBowl;
-  if (t >= 3.95 && t < 4.27) face.mouth = "round";
-  else if (chew > .55) face.mouth = "tiny";
+  const {pick, scoop, lift, cut, bite, clear, set, release} = mealEvents;
+  const engaged = pulse(.55, 1.97, 8.15, 9.21, t);
+  const chewing = pulse(4.64, 4.78, 5.90, 6.14, t);
+  const chew = chewing * Math.sin((t - 4.64) * 2 * Math.PI * 1.65);
+  const swallow = pulse(6.05, 6.29, 6.45, 6.70, t);
+  const face = faceAt("xu", mealCues, [.51, 3.31, 6.61, 9.55], t);
+  face.lift += .28 * pulse(.50, 1.63, 3.32, 3.97, t);
+  face.gaze += .21 * engaged;
+  if (t >= 3.96 && t < 4.26) face.mouth = "round";
+  else if (chew > .56) face.mouth = "tiny";
   const rig = createRig("xu", 211, floor, {
-    drop: 15.6, lean: 5.5 + 1.85 * reachSpoon - 1.15 * chewing,
-    tilt: 1.40 + 3.50 * pulse(.57, 1.95, 3.40, 3.98, t) + .52 * chew - 1.65 * swallow, face
+    drop: 15.6, lean: 5.4 + 2.05 * engaged - 1.2 * chewing,
+    tilt: 1.35 + 3.4 * pulse(.53, 1.94, 3.30, 3.97, t) + .51 * chew - 1.58 * swallow, face
   });
   const feet = {left: restFoot(rig, "left", 229, 222.0), right: restFoot(rig, "right", 229, 233.5)};
+
   const lip = headPoint(rig, [12.01, 18.30]);
   const faceEdge = headPoint(rig, [12.92, 18.42]);
-  const biteAngle = radians(-7);
-  const bitePose = sub(add(faceEdge, [.81, .10]), rotate(spoonTip, biteAngle));
-  const [x, y, degrees] = track([
+  const biteAngle = radians(-6);
+  const biteTip = add(faceEdge, [.93, .15]);
+  const bitePalm = sub(biteTip, rotate(sub(spoonTip, spoonGrip), biteAngle));
+  const pickup = [
     [0, ...spoonHome], [pick, ...spoonHome],
-    [scoop, 237.5, 168.8, -7], [lift, 238.1, 166.6, -2],
-    [3.30, 238.8, 161.0, 6.4],
-    [bite, ...bitePose, -7], [4.23, ...bitePose, -7],
-    [clear, 240.8, 155.8, -3.4], [5.02, 238.6, 160.85, 4.0],
-    [6.22, 238.6, 160.85, 4.0], [set, ...spoonHome], [10.8, ...spoonHome]
+    [2.02, 228.26, 169.9, -134],
+    [2.23, 230.7, 160.75, -108],
+    [2.45, 239.75, 153.4, -102],
+    [scoop, 240.30, 157.03, -105],
+    [lift, 240.02, 150.2, -87],
+    [cut, 240.55, 149.45, -83]
+  ];
+  const biteAndReturn = [
+    [cut, 243.42, 154.25, -1.5],
+    [3.42, 243.25, 152.15, -4],
+    [bite, ...bitePalm, -6], [4.22, ...bitePalm, -6],
+    [clear, 242.25, 153.25, -7],
+    [5.14, 240.55, 158.4, -.5], [6.34, 240.55, 158.4, -.5],
+    [6.53, 234.05, 159.75, -4], [6.85, 233.79, 167.0, 47], [7.33, 233.42, 175.7, 50],
+    [set, ...spoonSet], [10.8, ...spoonSet]
+  ];
+  const [hx, hy, degrees] = track(t < cut ? pickup : biteAndReturn, t);
+  const handle = [hx, hy], angle = radians(degrees);
+  const point = sub(handle, rotate(spoonGrip, angle));
+  const tip = add(point, rotate(spoonTip, angle));
+  const right = track([
+    [0, 219.75, 186.65], [.62, 219.75, 186.65], [1.21, 224.4, 174.7],
+    [pick, ...handle], [release, ...handle], [8.47, 231.0, 179.55],
+    [9.24, 219.75, 186.65], [10.8, 219.75, 186.65]
   ], t);
-  const angle = radians(degrees), point = [x, y], tip = add(point, rotate(spoonTip, angle));
-  const handle = add(point, rotate(spoonGrip, angle));
-  const wrists = {
-    left: {point: mixPoint([215.4, 185.5], bowl.hold, holdingBowl)},
-    right: {point: mixPoint([221.3, 185.6], handle, reachSpoon)}
-  };
+  const left = bodyPoint(rig, [-3.5, 60.6]);
   const spoon = {point, angle, tip, handle, food: t >= lift && t < 4.19};
-  return {rig: placeLimbs(rig, feet, wrists), bowl, spoon, reachSpoon, holdingBowl, lip, faceEdge};
+  return {rig: placeLimbs(rig, feet, {left: {point: left}, right: {point: right}}), bowl, spoon, lip, faceEdge};
 }
 const shots = [
   {id: "walk", title: "走路与停步", name: "小宇", file: "01-走路与停步.png", duration: 7.2,
@@ -246,9 +263,9 @@ const shots = [
       [8.42, "松手回收", "瓶子停在新位置，手撤回"]],
     faces: [[.25, "平静"], [3.89, "担心"], [8.75, "松口气"]], sample: handleBottle},
   {id: "meal", title: "坐着吃饭", name: "小旭", file: "03-坐着吃饭.png", duration: 10.8,
-    keyframes: [[.32, "坐稳", "胯落在椅面，双脚踩横档"], [2.51, "舀饭", "勺头由碗沿挡住一部分"],
+    keyframes: [[.32, "坐稳", "胯落在椅面，双脚踩横档"], [2.65, "舀饭", "勺头入碗，整个手和袖子在碗外"],
       [4.16, "送到嘴边", "勺尖停在唇前，圆手在把手末端"], [5.12, "撤勺咀嚼", "勺子退开后才开始咀嚼"],
-      [8.70, "放勺抬眼", "勺子落稳，圆手随后离开"]],
+      [8.70, "放勺抬眼", "勺子放在碗旁空出的桌面"]],
     faces: [[1.34, "疑惑"], [4.16, "微张嘴"], [8.76, "松口气"]], sample: eat},
   {id: "listen", title: "停步听声", name: "大叔", file: "04-停步听声.png", duration: 7.7,
     keyframes: [[.63, "缓步", "胯稳在支撑脚上方"], [1.70, "听见动静", "眼睛先朝声音方向抬起"],
@@ -265,4 +282,4 @@ for (const shot of shots) {
 }
 const footsteps = {walk: yuWalk.steps, listen: uncleWalk.steps};
 
-module.exports = {FPS, floor, frames, shots, footsteps, bottleGrip, bottleHome, bottleSet, spoonTip, spoonGrip, mealEvents, ear};
+module.exports = {FPS, floor, frames, shots, footsteps, bottleGrip, bottleHome, bottleSet, spoonTip, spoonGrip, mealDesk, mealEvents, ear};

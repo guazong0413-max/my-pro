@@ -6,7 +6,7 @@ const {once} = require("node:events");
 const {Readable} = require("node:stream");
 const {pipeline} = require("node:stream/promises");
 const {createCanvas, rect, ell, grad, text, ease, pulse, rand} = require("../开篇九十秒/drawing.cjs");
-const {FPS, floor, frames, shots} = require("./motion.cjs");
+const {FPS, floor, frames, shots, mealEvents} = require("./motion.cjs");
 const {fonts, accent} = require("./design.cjs");
 const {backdrop} = require("./sets.cjs");
 const {foreground} = require("./props.cjs");
@@ -19,7 +19,8 @@ function camera(id, t) {
     return [239, 134, 2.28];
   }
   if (id === "meal") {
-    if (t >= 1.54 && t < 8.71) return [229, 157, 4.85 + .15 * ease(1.54, 4.24, t)];
+    if (t >= 2.19 && t < mealEvents.cut) return [255, 166, 10.65];
+    if (t >= mealEvents.cut && t < 8.71) return [229, 155.5, 4.91];
     return [227, 168, 2.81];
   }
   if (t >= 2.52) return [211, 102, 4.83];

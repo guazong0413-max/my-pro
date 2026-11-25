@@ -14,9 +14,9 @@ function noise(seed) {
 
 function footstep(t, high, low, heavy) {
   const impact = Math.exp(-t * (heavy ? 35 : 53));
-  const dust = (high - low) * Math.exp(-t * 22) * .49;
-  const heel = low * impact * 2.1 + .49 * Math.sin(TAU * (heavy ? 63 : 79) * t) * impact;
-  return dust + heel;
+  const dust = (high - low) * Math.exp(-t * 26) * .30;
+  const heel = low * impact * 1.9 + .44 * Math.sin(TAU * (heavy ? 63 : 79) * t) * impact;
+  return (dust + heel) * Math.min(1, t / .0065);
 }
 
 function plastic(t, high, low, settingDown) {
@@ -86,8 +86,8 @@ function wav() {
   for (const shot of shots) {
     for (const [i, step] of (footsteps[shot.id] ?? []).entries()) {
       const heavy = shot.id === "listen";
-      add(shot, step.land, .23, (heavy ? .36 : .27) * (i % 2 ? 1 : .85), (step.x - 220) / 340,
-        (t, hi, lo) => footstep(t, hi, lo, heavy));
+      add(shot, step.land, .19, (heavy ? .107 : .087) * (i % 2 ? 1 : .85), (step.x - 220) / 340,
+        (t, hi, lo) => footstep(t, hi, lo, heavy), .065);
     }
     if (shot.id === "bottle") {
       add(shot, 2.06, .22, .18, .10, (t, hi, lo) => plastic(t, hi, lo, false));
