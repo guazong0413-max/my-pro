@@ -1,8 +1,9 @@
 "use strict";
 
 const {clamp,lerp,ease,pulse,path,rect,round,ell,line,poly,text,grad,glow,place,rand}=require("../开篇九十秒/drawing.cjs");
-const {W,H,floor,doors,events,camera,cue,expression,makeActor,draw,shadow,wristOf,facePoint,
-  lock,wall,tiledFloor,nightRoom,hall,letter,clock,powder,keyring,paintCap,cat}=require("./art.cjs");
+const {W,H,floor,doors,ajar,stairX,events,camera,cue,expression,makeActor,draw,shadow,wristOf,facePoint,
+  doorPose,wall,tiledFloor,nightRoom,meiRear,hallStairs,hall,letter,clock,powder,keyring,paintCap,cat}=require("./art.cjs");
+const {timing}=require("./blocking.cjs");
 
 const mixes={};
 function setPerformance(value){Object.assign(mixes,value);}
@@ -41,32 +42,29 @@ function roomScene(c,t,which){
   return [a.little,a.mei];
 }
 function keyhole(c,t){
-  if(t>=21.14){
+  const door=doorPose(doors.mei);
+  if(t>=timing.viewerCut){
     rect(c,0,0,W,H,"#101722");
-    c.save();c.beginPath();c.ellipse(260,134,116,106,0,0,Math.PI*2);c.clip();
-    hall(c,t,{day:false});
-    rect(c,0,0,W,H,"rgba(8,18,30,.65)");
-    glow(c,271,111,57,64,"rgba(129,148,155,.21)");
+    c.save();c.beginPath();c.ellipse(240,134,110,104,0,0,Math.PI*2);c.clip();
+    rect(c,0,0,W,H,grad(c,168,42,291,216,[[0,"#202a34"],[.58,"#151f2b"],[1,"#0d1621"]]));
+    poly(c,[[85,171],[322,155],[389,241],[121,264]],"#111c27");
+    line(c,[[155,152],[318,134]],"#2a3540",1.1);
+    glow(c,229,109,61,53,"rgba(100,122,139,.11)");
     c.restore();
-    ell(c,260,134,117,106,null,"#414a54",1.7);
-    ell(c,260,134,114,103,null,"#1a2330",2.2);
-    return [];
+    ell(c,240,134,110,104,null,"#414a54",1.7);
+    ell(c,240,134,107,101,null,"#1a2330",2.2);
+    return {actors:[],blocking:{kind:"peephole-view",door}};
   }
-  const leaning=ease(19.15,20.58,t);
-  const a=makeActor("mei",281+9*leaning,floor,.785,1,
-    {lean:4.0+9.2*leaning,tilt:-1.4,face:expression("mei","alert",t,{blink:[19.73]})});
-  const eye=facePoint(a,[9.25,20.12]);
-  camera(c,309,134,1.63,()=>{
-    nightRoom(c,t);
-    rect(c,323,49,44,178,"#435465");
-    rect(c,323,50,6.75,176,"#657281");
-    line(c,[[322.4,49],[322.4,225]],"#819099",1.11);
-    lock(c,324,154,"#ab9c82");
-    ell(c,323,eye[1]+(1-leaning)*2.35,1.40,2.0,"#262d37","#a39c86",.6);
-    draw(c,a);
-    rect(c,326,50,6.5,176,"rgba(34,51,64,.26)");
+  const lean=ease(19.16,timing.eyeAtViewer,t), [x,y]=door.viewer;
+  const rear={
+    view:"rear", cameraDepth:62, roomDepth:lerp(19,4,lean),
+    eye:[x+15*(1-lean),y+3*(1-lean)],rootX:x+15,
+  };
+  camera(c,x-2+2*lean,122.5,1.93+.06*lean,()=>{
+    nightRoom(c,t,door);
+    meiRear(c,rear);
   });
-  return [a];
+  return {actors:[],blocking:{kind:"peephole-approach",door,rear}};
 }
 function considers(c,t){
   const a=makeActor("mei",269,floor,.775,-1,{lean:1.35,tilt:2.7+3*ease(24.12,24.9,t),
@@ -180,42 +178,73 @@ function yuWalking(t,plan=firstWalk,small=.745,state="alert"){
     face:expression("yu",state,t,{blink:[66.71,72.74,88.63],look:state==="worry"?.19:.015}),
     feet:move.feet,fit:true,weight:move.swing});
 }
-function peekOut(c,t,which){
-  const open=.78*ease(40.82,42.14,t);
-  const a=makeActor("yu",244+4.2*ease(41.12,43.62,t),floor,.756,1,{
-    lean:2+.81*pulse(41.69,42.30,47.8,49.28,t),tilt:1.7-.71*ease(49.0,52.0,t),
-    face:expression("yu",which?"doubt":"alert",t,{blink:[43.91,50.75],look:which?.05:.26})
-  });
-  camera(c,which?281:244,which?138:145,which?1.48:1.43,()=>{
-    hall(c,t,{open,inside:()=>{
-      const [x,y,w,h]=doors.yu;
-      c.save();c.beginPath();c.rect(x,y,w,h+1);c.clip();
-      draw(c,a);
-      c.restore();
-    }});
+function atDoor(t,door,side,hold){
+  const inside=side==="room";
+  const x=inside?255.8:261.5, y=floor+(inside?-1.3:1.6);
+  const options={lean:2.6+1.2*hold,tilt:-.8,face:expression("yu","alert",t,{blink:[43.91,50.75,85.32]})};
+  const resting=makeActor("yu",x,y,.742,-1,options);
+  if(!hold)return resting;
+  const base=wristOf(resting);
+  const wrist=door.grip.map((coordinate,i)=>lerp(base[i],coordinate,hold));
+  return makeActor("yu",x,y,.742,-1,{...options,wrist});
+}
+function peekOut(c,t){
+  const door=doorPose(doors.yu,ajar*ease(events.latch[0],timing.openEnd,t));
+  const hold=pulse(40.93,events.latch[0],timing.openEnd,43.02,t);
+  const actor=atDoor(t,door,"room",hold);
+  camera(c,227,145,1.35,()=>{
+    hall(c,{door,inside:()=>draw(c,actor)});
     powder(c,245,floor+4.3,91);
   });
-  return [a];
+  return {actors:[actor],blocking:{kind:"door-opening",door,actor,hold}};
+}
+function peekStairs(c,t){
+  const door=doorPose(doors.yu,ajar);
+  const [x,,w]=door.frame;
+  const right=363, left=right-(x+w-door.edge[0])*12.6;
+  const target=lerp(left-48,224,ease(timing.stairCut,timing.stairAligned,t));
+  const projectX=(world)=>target-(world-stairX)*1.18;
+  rect(c,0,0,W,H,"#151e29");
+  c.save();c.beginPath();c.rect(left,0,right-left,H);c.clip();
+  wall(c,226,["#3f505c","#2e3d4a","#25323d"]);
+  tiledFloor(c,226,false);
+  c.save();
+  c.translate(projectX(0),-11);
+  c.scale(-1.18,1.09);
+  hallStairs(c);
+  c.restore();
+  glow(c,245,91,120,140,"rgba(176,187,160,.10)");
+  c.restore();
+  poly(c,[[0,0],[left-5,0],[left+2,H],[0,H]],"#1a2632");
+  line(c,[[left-4,0],[left+2,H]],"#53636d",2.45);
+  poly(c,[[right-5,0],[W,0],[W,H],[right+10,H]],"#25333f");
+  line(c,[[right-5,0],[right+10,H]],"#728089",1.85);
+  rect(c,0,0,W,H,"rgba(9,16,26,.19)");
+  return {actors:[],blocking:{kind:"stair-view",door,projectX,left,right}};
+}
+function survey(c,t){
+  if(t>=timing.stairCut)return peekStairs(c,t);
+  const door=doorPose(doors.yu,ajar);
+  const actor=atDoor(t,door,"room",0);
+  camera(c,234,146,1.49,()=>{
+    hall(c,{door,inside:()=>draw(c,actor)});
+    powder(c,245,floor+4.3,91);
+  });
+  return {actors:[actor],blocking:{kind:"door-opening",door,actor,hold:0}};
 }
 function checksHall(c,t){
-  if(t<57.36){
-    camera(c,355,132,1.35,()=>{
-      hall(c,t,{open:.78});
-      powder(c,245,floor+4.3,91);
-    });
-  }else{
-    camera(c,158,150,1.21,()=>{
-      hall(c,t,{open:.78});
-      powder(c,245,floor+4.3,91);
-    });
-  }
+  if(t<timing.neighborCut)return peekStairs(c,t);
+  camera(c,156,150,1.22,()=>{
+    hall(c);
+    powder(c,245,floor+4.3,91);
+  });
   return [];
 }
 function walkAndLook(c,t,back=false){
   const a=yuWalking(t,back?secondWalk:firstWalk,.755,back?"worry":"alert");
   const look=back?cue(t,[[69.65,284,158],[74.69,241,159]]):cue(t,[[62.95,245,147],[69.65,302,146]]);
   camera(c,...look,back?1.24:1.09,()=>{
-    hall(c,t,{open:.78});powder(c,245,floor+4.3,91);
+    hall(c);powder(c,245,floor+4.3,91);
     shadow(c,a);draw(c,a);
     if(back)glow(c,246,230,43,22,"rgba(216,211,178,.10)");
   });
@@ -227,7 +256,7 @@ function closeFloor(c,t,wipe=false){
   const u=wipe?ease(79.42,80.47,t):ease(events.flour,77.44,t);
   const hand=[x+lerp(-22,17,u),wipe?209.8:191.8];
   camera(c,x+2,210,2.96,()=>{
-    hall(c,t,{open:wipe?.63:.78});
+    hall(c);
     const threshold=floor+4.25;
     if(wipe){
       for(let i=0;i<91;i++){
@@ -272,19 +301,14 @@ function closeFloor(c,t,wipe=false){
   return [];
 }
 function leave(c,t){
-  const open=.61*(1-ease(85.26,events.latch.at(-1),t));
-  const x=259.85;
-  const loose=makeActor("yu",x,floor,.764,-1,{lean:3.1,tilt:-1.08,face:expression("yu","alert",t,{blink:[85.32]})});
-  const base=wristOf(loose);
-  const take=pulse(84.78,85.17,85.97,86.48,t);
-  const edge=doors.yu[0]+doors.yu[2]-open*doors.yu[2]*.295;
-  const hand=[lerp(base[0],edge-6.1,take),lerp(base[1],doors.yu[1]+94.13,take)];
-  const a=makeActor("yu",x,floor,.764,-1,{lean:3.1,tilt:-1.08,face:loose.rig.expression,wrist:hand});
+  const door=doorPose(doors.yu,ajar*(1-ease(timing.closeStart,events.latch.at(-1),t)));
+  const hold=pulse(84.78,85.17,85.97,86.48,t);
+  const actor=atDoor(t,door,"hall",hold);
   camera(c,254,142,1.36,()=>{
-    hall(c,t,{open});powder(c,116,floor+4.3,86,1,151);
-    draw(c,a);
+    hall(c,{door});powder(c,116,floor+4.3,86,1,151);
+    shadow(c,actor);draw(c,actor);
   });
-  return [a];
+  return {actors:[actor],blocking:{kind:"door-closing",door,actor,hold}};
 }
 function keys(c,t){
   const hold=ease(86.65,events.key+.14,t), x=252-16*hold, y=158-4.2*hold;
@@ -320,7 +344,7 @@ const scenes=[
   (c,t)=>roomScene(c,t,1),
   (c,t)=>roomScene(c,t,2),
   keyhole, considers, (c,t)=>(letter(c,t),[]), watch,
-  (c,t)=>peekOut(c,t,0), (c,t)=>(clock(c,t),[]), (c,t)=>peekOut(c,t,1),
+  peekOut, (c,t)=>(clock(c,t),[]), survey,
   checksHall, (c,t)=>walkAndLook(c,t), (c,t)=>walkAndLook(c,t,true),
   (c,t)=>closeFloor(c,t), (c,t)=>closeFloor(c,t,true),
   (c,t)=>(clock(c,t,true),[]),

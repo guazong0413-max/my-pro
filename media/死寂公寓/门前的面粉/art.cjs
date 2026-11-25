@@ -2,6 +2,8 @@
 
 const {clamp, lerp, ease, pulse, path, rect, round, ell, line, poly, text, grad, glow, place, rand}=require("../开篇九十秒/drawing.cjs");
 const {cat}=require("../开篇九十秒/cast.cjs");
+const {SKIN}=require("../隔门一瓶水/characters/faces.cjs");
+const {models}=require("../隔门一瓶水/characters/models.cjs");
 const {poseFor}=require("../隔门一瓶水/characters/reference-style/face.cjs");
 const {createRig, bodyPoint, headPoint, restFoot, fitPelvis, placeLimbs, drawActor, sole, sides}=require("../人物动作/rig.cjs");
 const story=require("./story.json");
@@ -9,6 +11,9 @@ const {events}=story;
 
 const W=480, H=270, floor=226;
 const doors={neighbor:[68,57,87,169], yu:[172,57,87,169], mei:[324,57,91,169]};
+const ajar=.78;
+const stairX=392;
+const meiModel=models.find(model=>model.id==="mei");
 
 function camera(c,x,y,zoom,draw){
   c.save();
@@ -90,20 +95,29 @@ function doorFrame(c,[x,y,w,h]){
   line(c,[[x-4,y+h],[x-4,y-4],[x+w+4,y-4],[x+w+4,y+h]],"#576673",.9);
   rect(c,x,y,w,h,"#101a24");
 }
-function doorLeaf(c,[x,y,w,h],angle=0,label=null){
-  const gap=angle*w*.295, edge=x+w-gap;
-  const face=grad(c,x,y,edge,y+h,[[0,"#4a616d"],[.65,"#34485a"],[1,"#2d4050"]]);
-  poly(c,[[x+.85,y],[edge,y+1.2*angle],[edge,y+h-1.05*angle],[x+.85,y+h]],face);
-  rect(c,edge-.6,y+2,1.08,h-4,angle>.1?"#63777b":"#536473");
-  const panel=edge-x-13;
-  round(c,x+6,y+9,panel,70,1.3,"#354958","#526572",.6);
-  round(c,x+6,y+95,panel,h-104,1.3,"#324655","#4c5d6a",.65);
-  const cx=(x+edge)/2;
-  ell(c,cx,y+56.4,1.55,1.55,"#7c7464");
-  ell(c,cx,y+56.4,.75,.78,"#111e29");
-  lock(c,edge-9.9,y+96);
-  if(label)text(c,label,cx,y+17,5.8,"#b9c2bc","center",true);
-  return edge;
+function doorPose(frame,open=0){
+  const [x,y,w,h]=frame, swing=.884*open;
+  // The left jamb stays fixed. The free edge moves inward, exposing the right jamb.
+  const span=(w-.85)*Math.cos(swing), depth=(w-.85)*Math.sin(swing);
+  const point=(u,v)=>[x+.85+span*u,y+v+u*depth*lerp(.102,-.083,v/h)];
+  const hinge=point(0,0), edge=point(1,0), edgeBottom=point(1,h);
+  const handle=point(1-9.9/w,96);
+  return {frame,open,depth,hinge,edge,edgeBottom,point,handle,
+    grip:[handle[0]+5.65,handle[1]+.20],viewer:point(.5,56.4)};
+}
+function doorLeaf(c,door,label=null){
+  const {frame:[x,y,w,h],hinge,edge,edgeBottom,point,handle,viewer,open}=door;
+  const face=grad(c,x,y,edge[0],y+h,[[0,"#4a616d"],[.65,"#34485a"],[1,"#2d4050"]]);
+  poly(c,[hinge,edge,edgeBottom,point(0,h)],face);
+  line(c,[edge,edgeBottom],open>.1?"#63777b":"#536473",1.08);
+  const panels=[[9,79,"#354958","#526572"],[105,h-9,"#324655","#4c5d6a"]];
+  for(const [top,bottom,fill,stroke] of panels){
+    poly(c,[point(6/w,top),point(1-7/w,top),point(1-7/w,bottom),point(6/w,bottom)],fill,stroke,.64);
+  }
+  ell(c,...viewer,1.55,1.55,"#7c7464");
+  ell(c,...viewer,.75,.78,"#111e29");
+  lock(c,...handle);
+  if(label)text(c,label,...point(.50,17),5.8,"#b9c2bc","center",true);
 }
 function closedChain(c,x,y){
   round(c,x-3.2,y-3,7,5.8,.8,"#857e6b");
@@ -125,7 +139,7 @@ function staticCabinet(c){
   path(c,"M151 124 Q161 121 172 124 L176 139 Q161 142 147 139Z","#a48b6d");
   ell(c,161.5,139,14.6,2.1,"#c2a27a");
 }
-function nightRoom(c,t){
+function nightRoom(c,t,door=doorPose(doors.mei)){
   wall(c,226,["#363946","#2b303e","#181f2e"]);
   tiledFloor(c,226,false,true);
   round(c,18,52,102,91,1.7,"#283645","#4b4650",1.1);
@@ -137,15 +151,42 @@ function nightRoom(c,t){
   path(c,"M110 50 L130 49 Q124 104 130 146 L108 143 Q113 96 110 50Z","#494551");
   glow(c,156,144,154,112,"rgba(225,178,124,.20)");
   staticCabinet(c);
-  const [x,y]=doors.mei;
-  doorFrame(c,doors.mei);doorLeaf(c,doors.mei,0,"09");
+  const [x,y]=door.frame;
+  doorFrame(c,door.frame);doorLeaf(c,door);
   closedChain(c,x+58,y+81);
   place(c,198,168.03,1,()=>round(c,-10.8,-2.65,23,4.15,.9,"#d5c7a6"),false,.036);
   glow(c,287,161,188,118,"rgba(93,117,137,.13)");
 }
-function hall(c,t,{open=0,inside,day=true}={}){
-  wall(c,226,day?["#53636a","#374a56","#253540"]:["#334651","#253641","#1d2a35"]);
-  tiledFloor(c,226,day);
+function meiRear(c,{eye,rootX}){
+  const {outfit}=meiModel, skin=SKIN.mei, hair="#2d2931", rim="#574955";
+  c.save();
+  c.translate(...eye);
+  c.scale(.785,.785);
+  c.translate(0,-20);
+  c.save();
+  // Keep the spine anchored at the base while the head leans onto the viewer.
+  c.transform(1,0,(rootX-eye[0])/(.785*100),1,0,0);
+  path(c,"M-14 43 Q-21 51 -22 76 L-22.3 88 Q-20 92 -15.2 90 L-14 71 L-8 50Z",outfit.far);
+  path(c,"M13 43 Q20 50 21.4 71 L22.4 87 Q20.1 91 15.5 89 L14 70 L9 49Z",outfit.near);
+  ell(c,-18.8,90.9,2.7,2.9,skin.shade);
+  ell(c,19.1,90.5,2.8,2.9,skin.main);
+  path(c,"M-6.7 33 Q-14 35 -17 40 Q-19 44 -16.1 57 L-13 67 Q-12 74 -15 87 L-16.9 117 Q-3 121 16.6 117 L16 98 Q14 81 13 72 Q13 61 17 47 Q18 38 7 33Z",outfit.coat,outfit.edge,.48);
+  path(c,"M-17 44 Q-12 49 -12 61 Q-10 72 -13 86 L-12.7 117 L-16.9 117 L-15 86 Q-12 74 -13 67Z",outfit.shade);
+  path(c,"M-8 33 Q0 39 8 33 L12.4 36.7 Q8 43.5 0 44.3 Q-8.5 42.7 -12.1 37Z","#ad8f5d");
+  path(c,"M.1 44.2 Q-.4 72 .2 94 L-.9 116.6",null,outfit.shade,.53);
+  path(c,"M-13.7 114.8 Q-.5 118.2 14.7 114.5",null,outfit.seams,.47);
+  c.restore();
+  path(c,"M-5.5 28.5 L5.3 28 L5.8 35 Q.1 38.2 -5.9 35Z",skin.shade);
+  ell(c,-11.64,21.7,1.62,2.54,skin.shade);
+  ell(c,11.22,21.7,1.37,2.53,skin.main);
+  path(c,"M-6.1 8.1 C-8.9 1.7 -5.8 -3.4 -.7 -3.8 Q4.5 -4.0 6.5 0 Q8.1 4.8 4.3 7.9Z",hair);
+  path(c,"M-4 -.8 Q-.4 -2.1 2.8 -.6",null,rim,.6);
+  path(c,"M-6.3 5.6 Q.2 2.7 5.9 6.1 L5 7.7 Q-1.2 5.9 -6.4 7.2Z","#68525a");
+  path(c,"M-12.3 14.5 Q-10.5 6.9 -1.5 6.3 Q7.7 5.8 11.4 13.3 Q13.3 19.1 10.5 24.8 Q8.3 30 2.8 32.4 Q-.7 30.4 -4.3 31.9 Q-9.5 29.7 -11.5 25.3 Q-13.7 20.4 -12.3 14.5Z",hair);
+  path(c,"M-10 21.5 Q-9.7 10.2 -4.3 8.6 M2.1 8.5 Q7.7 11.8 8 21.1",null,rim,.6);
+  c.restore();
+}
+function hallStairs(c){
   poly(c,[[321,55],[477,37],[477,226],[334,226],[321,213]],"#1b2937");
   poly(c,[[332,55],[364,58],[365,225],[334,226]],"#435660");
   for(let i=0;i<6;i++){
@@ -158,17 +199,23 @@ function hall(c,t,{open=0,inside,day=true}={}){
     const x=362+25*i,y=192-15*i;
     line(c,[[x,y],[x,y+26]],"#4c5f68",1.0);
   }
-  doorFrame(c,doors.neighbor);doorLeaf(c,doors.neighbor,0,"1102");
-  doorFrame(c,doors.yu);
-  if(inside)inside();
-  doorLeaf(c,doors.yu,open,"1101");
-  if(day){
-    path(c,"M396 23 L430 23 L345 226 H314Z",grad(c,408,26,352,225,[[0,"rgba(220,217,185,.20)"],[1,"rgba(196,205,189,.027)"]]));
-    glow(c,404,64,125,124,"rgba(180,195,177,.151)");
+}
+function hall(c,{door=doorPose(doors.yu,ajar),inside}={}){
+  wall(c,226,["#53636a","#374a56","#253540"]);
+  tiledFloor(c,226,true);
+  hallStairs(c);
+  doorFrame(c,doors.neighbor);doorLeaf(c,doorPose(doors.neighbor),"1102");
+  doorFrame(c,door.frame);
+  if(inside){
+    const [x,y,w,h]=door.frame;
+    c.save();c.beginPath();c.rect(x,y,w,h+1);c.clip();
+    inside();
+    c.restore();
   }
-  round(c,339,42,36,10,1.3,"#324947","#5b7471",.55);
-  text(c,"楼梯",357,49.7,5.75,"#a3ba9c","center",true);
-  glow(c,156,25,172,56,day?"rgba(167,193,183,.10)":"rgba(104,117,111,.10)");
+  doorLeaf(c,door,"1101");
+  path(c,"M396 23 L430 23 L345 226 H314Z",grad(c,408,26,352,225,[[0,"rgba(220,217,185,.20)"],[1,"rgba(196,205,189,.027)"]]));
+  glow(c,404,64,125,124,"rgba(180,195,177,.151)");
+  glow(c,156,25,172,56,"rgba(167,193,183,.10)");
 }
 function powder(c,x,y,n=85,open=1,seed=51){
   const limit=Math.max(0,Math.min(1,open));
@@ -254,4 +301,4 @@ function paintCap(c,x,y,scale=1){
   ell(c,x,y,2.45*scale,2.25*scale,"#c0a18a");
 }
 
-module.exports={W,H,floor,events,doors,story,camera,cue,expression,makeActor,draw,shadow,wristOf,facePoint,doorFrame,doorLeaf,lock,wall,tiledFloor,nightRoom,hall,letter,clock,powder,keyring,paintCap,cat};
+module.exports={W,H,floor,events,doors,ajar,stairX,story,camera,cue,expression,makeActor,draw,shadow,wristOf,facePoint,doorPose,wall,tiledFloor,nightRoom,meiRear,hallStairs,hall,letter,clock,powder,keyring,paintCap,cat};

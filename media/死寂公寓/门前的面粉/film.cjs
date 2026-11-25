@@ -9,6 +9,7 @@ const {pipeline}=require("node:stream/promises");
 const {createCanvas,rect,round,line,text,grad,ease,pulse,rand}=require("../开篇九十秒/drawing.cjs");
 const {W,H,story}=require("./art.cjs");
 const {scenes,setPerformance}=require("./scenes.cjs");
+const {verifyDirection}=require("./blocking.cjs");
 
 function optionalJSON(file){
   return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,"utf8")):{};
@@ -31,7 +32,9 @@ function createRenderer(canvas,performance=optionalJSON(nodePath.join(__dirname,
     rect(c,0,0,W,H,"#18232d");
     let index=0;
     while(index+1<scenes.length && t>=story.cuts[index+1])index++;
-    const actors=scenes[index](c,t);
+    const scene=scenes[index](c,t);
+    const {actors,blocking}=Array.isArray(scene)?{actors:scene}:scene;
+    verifyDirection(index,t,blocking);
     c.globalAlpha=.29;rect(c,0,0,W,H,texture);c.globalAlpha=1;
     const vignette=c.createRadialGradient(243,134,83,243,134,316);
     vignette.addColorStop(0,"rgba(9,16,25,0)");
@@ -51,10 +54,12 @@ function createRenderer(canvas,performance=optionalJSON(nodePath.join(__dirname,
 
     const timestamp=t>=39.55&&t<43.75?"07:30":t>=81.92&&t<84.37?"07:38":"";
     if(timestamp){
-      const q=timestamp==="07:30"?pulse(39.58,39.94,43.24,43.75,t):pulse(81.94,82.11,83.92,84.37,t);
+      const morning=timestamp==="07:30";
+      const q=morning?pulse(39.58,39.94,43.24,43.75,t):pulse(81.94,82.11,83.92,84.37,t);
+      const x=morning?298:24;
       c.globalAlpha=q;
-      round(c,24,20,55,21,2.1,timestamp==="07:38"?"#603c3b":"#344b52");
-      text(c,timestamp,51.5,35,11.4,"#e6dbc8","center",true);
+      round(c,x,20,55,21,2.1,morning?"#344b52":"#603c3b");
+      text(c,timestamp,x+27.5,35,11.4,"#e6dbc8","center",true);
       c.globalAlpha=1;
     }
 
@@ -74,7 +79,7 @@ function createRenderer(canvas,performance=optionalJSON(nodePath.join(__dirname,
     }
     const fade=Math.max(1-ease(0,.56,t),ease(89.53,90,t));
     if(fade>0)rect(c,0,0,W,H,"rgba(10,16,24,"+fade+")");
-    return {index,actors};
+    return {index,actors,blocking};
   };
 }
 function argument(name,fallback){

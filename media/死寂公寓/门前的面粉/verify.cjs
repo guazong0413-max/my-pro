@@ -6,7 +6,15 @@ const {sole}=require("../人物动作/rig.cjs");
 const {createRenderer}=require("./film.cjs");
 const story=require("./story.json");
 const performance=require("./performance.json");
-const draw=createRenderer(createCanvas(480,270),performance);
+const canvas=createCanvas(480,270);
+const context=canvas.getContext("2d");
+const paintText=context.fillText.bind(context);
+const labels=[];
+context.fillText=(value,x,y,...rest)=>{
+  if(y!==251.5)labels.push(String(value).trim());
+  paintText(value,x,y,...rest);
+};
+const draw=createRenderer(canvas,performance);
 const frameCount=story.duration*story.fps;
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 
@@ -41,10 +49,25 @@ for(const role of ["child","mei"]){
 }
 
 const visited=new Set();
-let prior=null, contacts=0, motionFrames=0, error=0;
+const directionFrames={};
+let prior=null, previousDoor=null, checkedLabels=false, contacts=0, motionFrames=0, error=0;
 for(let f=0;f<frameCount;f++){
-  const t=f/story.fps, {index,actors}=draw(t);
+  labels.length=0;
+  const t=f/story.fps, {index,actors,blocking}=draw(t);
   visited.add(index);
+  assert(!labels.includes("楼梯"),"The set labels a visible staircase at "+t);
+  checkedLabels||=labels.includes("1101");
+  if(index<=4)assert(!labels.includes("09"),"An exterior door number is visible inside Mei's room at "+t);
+  if(blocking){
+    const {kind,door}=blocking;
+    directionFrames[kind]=(directionFrames[kind]??0)+1;
+    if(previousDoor?.index===index && previousDoor.kind===kind){
+      const change=door.open-previousDoor.open;
+      if(kind==="door-opening")assert(change>=0,"The leaf moved back while opening at "+t);
+      if(kind==="door-closing")assert(change<=0,"The leaf moved back while closing at "+t);
+    }
+    previousDoor={index,kind,open:door.open};
+  }
   for(const actor of actors){
     const {rig,feet}=actor;
     for(const group of [rig.arms,rig.legs]){
@@ -56,6 +79,9 @@ for(let f=0;f<frameCount;f++){
     }
     if(!feet)continue;
     motionFrames++;
+    if(prior?.index===index){
+      assert(actor.dir*(actor.x-prior.actor.x)>=-.001,"Body faces away from the walking direction at "+t);
+    }
     assert(Object.values(feet).some(x=>x.planted),"Missing ground contact on "+t);
     for(const [side,state] of Object.entries(feet)){
       const [x,y]=actor.world(rig.legs[side].end);
@@ -69,4 +95,5 @@ for(let f=0;f<frameCount;f++){
   }
 }
 assert.equal(visited.size,story.cuts.length-1);
-console.log(JSON.stringify({frames:frameCount,shots:visited.size,motionFrames,contacts,maxReachError:error,captions:performance.subs.length}));
+assert(checkedLabels,"Could not inspect the rendered set labels");
+console.log(JSON.stringify({frames:frameCount,shots:visited.size,motionFrames,contacts,maxReachError:error,captions:performance.subs.length,directionFrames}));
