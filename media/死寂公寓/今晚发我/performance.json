@@ -1,0 +1,11 @@
+{
+  "ends": {
+    "warning": 33.092,
+    "repeat": 37.152,
+    "overtime": 45.189,
+    "outside": 48.931,
+    "drill": 50.164
+  },
+  "integratedLUFS": -18.5,
+  "truePeakDBTP": -3.06
+}
