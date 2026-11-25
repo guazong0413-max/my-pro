@@ -1,0 +1,16 @@
+{
+  "name": "paper-wings-ferry",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.jsx",
+    "render": "remotion render src/index.jsx PaperWings 纸鸟逆风.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k --image-format=jpeg --jpeg-quality=91 --concurrency=6",
+    "verify": "node verify.cjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.547",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.547"
+  }
+}
