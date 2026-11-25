@@ -13,6 +13,7 @@ const upAngle=.038, downAngle=1.541;
 const sides=["left","right"];
 const railFeet={left:[507,railDeck-3.4],right:[525,railDeck-3.4]};
 const railPalms={left:[504,railTop],right:[527,railTop]};
+const wideRailPalms={left:[475.5,railTop],right:[557.5,railTop]};
 const fallenFeet={left:[524,soil-3.7],right:[531,soil-3.7]};
 const fallenPalms={left:[590,soil-4.1],right:[642,soil-3.75]};
 const bracedPalms={left:[600,soil-3.4],right:[627,soil-3.4]};
@@ -141,7 +142,7 @@ function distantCar(c,x,y,direction,blue,t){
   },direction<0);
 }
 
-function windowPOV(c,t) {
+function windowPOV(c,t,{wideGrip=false}={}) {
   night(c);
   const follow=ease(24.33,27.08,t);
   const x=lerp(555,522,follow),y=lerp(441,128,follow);
@@ -152,7 +153,7 @@ function windowPOV(c,t) {
     distantCar(c,police,552,1,true,t);
     distantCar(c,780,565,-1,false,t);
     c.save();c.globalAlpha=.54+.46*follow;
-    visitor(c,falling(t),t);
+    visitor(c,falling(t,wideGrip),t);
     c.restore();
     garden(c,true);
   });
@@ -206,9 +207,10 @@ function risePose(t) {
   return {hip,angle,feet,palms,phase:t<events.brace?"landed":t<handsOff?"brace":"rise"};
 }
 
-function falling(t) {
-  if(t<events.railRelease)return {hip:railHip,angle:upAngle,feet:railFeet,palms:railPalms,phase:"rail"};
-  if(t>=events.impact)return risePose(t);
+function falling(t,wideGrip=false) {
+  const grip=wideGrip?wideRailPalms:railPalms;
+  if(t<events.railRelease)return {hip:railHip,angle:upAngle,feet:railFeet,palms:grip,phase:"rail",railGrip:wideGrip,filmPose:wideGrip};
+  if(t>=events.impact)return {...risePose(t),filmPose:wideGrip};
   const u=clamp((t-events.railRelease)/(events.impact-events.railRelease));
   const angle=lerp(upAngle,downAngle,ease(0,.99,u));
   const hip=[lerp(railHip[0],landedHip[0],u),lerp(railHip[1],landedHip[1],u*u)];
@@ -219,13 +221,15 @@ function falling(t) {
     const local=mixPoint(origin,destination,loose);
     return [side,add(hip,rotate(add(local,[shift*(i?1:-1)*mid,0]),angle))];
   }));
-  return {hip,angle,feet:link(railFeet,fallenFeet,5.7),palms:link(railPalms,fallenPalms,9.4),phase:"air"};
+  return {hip,angle,feet:link(railFeet,fallenFeet,5.7),palms:link(grip,fallenPalms,9.4),phase:"air",filmPose:wideGrip};
 }
 
 function visitor(c,p,t,{detail=false}={}) {
   const {hip,angle,feet,palms,phase}=p;
   const transform=point=>add(hip,rotate(point,angle));
   const bodyShade=detail?"#59625a":"#36474a";
+  const prone=p.filmPose?ease(.54,1.44,angle):0;
+  const headOrigin=[-3.1*prone,-50],headAngle=-.1-.15*ease(52.33,55.52,t)-.79*prone;
   const arms={},legs={};
   for(const [i,side] of sides.entries()){
     const sideSpace=i?1:-1;
@@ -244,7 +248,23 @@ function visitor(c,p,t,{detail=false}={}) {
   function sleeve(side,near){
     const part=arms[side];
     continuousLimb(c,part,[4.9,3.4,2.3],near?bodyShade:"#39494b");
-    ell(c,...part.end,2.42,2.23,near?"#68756c":"#4b6461");
+    if(p.filmPose && near){
+      const [wx,wy]=part.end, [mx,my]=part.middle, d=Math.hypot(wx-mx,wy-my);
+      const dx=(wx-mx)/d,dy=(wy-my)/d;
+      line(c,[[wx-3*dx-1.6*dy,wy-3*dy+1.6*dx],[wx-3*dx+1.6*dy,wy-3*dy-1.6*dx]],"#758078",.49);
+    }
+    if(p.railGrip){
+      place(c,...part.end,1,()=>{
+        path(c,"M-3.07 -.48 Q-3.09 -2.34 -.84 -2.74 Q1.68 -2.96 3.08 -1.29 Q3.64 -.61 2.95 1.14 L2.05 2.27 Q1.05 2.87 .35 1.91 L.07 .69 Q-1.94 1.29 -3.07 -.48Z",near?"#77857c":"#536b69");
+        path(c,"M-2.06 -1.40 Q-.51 -2.19 .96 -1.83",null,near?"#93a095":"#6e8680",.32);
+      },!near);
+    }else if(p.filmPose && p.phase==="brace"){
+      const pad=soil-part.end[1];
+      place(c,...part.end,1,()=>{
+        path(c,`M-2.12 -1.52 Q.8 -3.1 2.4 -.62 L3.36 .95 Q4.9 1.32 4.69 ${pad-.71} Q4.15 ${pad} 2.55 ${pad} H-2.19 Q-3.18 ${pad-.25} -3.0 1.35Z`,near?"#78877c":"#536967");
+      },!near);
+    }
+    else ell(c,...part.end,2.42,2.23,near?"#68756c":"#4b6461");
   }
   sleeve("left",false);
   place(c,...hip,1,()=>{
@@ -252,15 +272,21 @@ function visitor(c,p,t,{detail=false}={}) {
     path(c,"M-12.7 -34.6 Q-8.6 -29.9 -8.84 -21.7 L-8.46 5.6 L-12.2 5.6 Q-14.1 -2.3 -12.7 -14.9Z","#405050");
     path(c,"M5.4 -36.7 L5.8 -21.3 M-8.62 1.49 Q1.8 3.1 10.4 1.3",null,"#6c7568",.62);
     path(c,"M-4.8 -50 L-5.1 -44 Q.7 -40.4 4.79 -45.53 L4.2 -51Z","#6a746d");
-    const lift=ease(52.33,55.52,t);
-    c.save();c.translate(0,-50);c.rotate(-.1-.15*lift);
+    c.save();c.translate(...headOrigin);c.rotate(headAngle);
     path(c,"M-6.1 -4.6 Q-8.4 -10.4 -4.4 -16.0 Q-1.2 -20.0 4.4 -18 Q10.9 -16.8 10.1 -11.1 L12.6 -7.63 Q13.3 -6.5 10.9 -5.5 L9.3 -.74 Q7.7 3.3 1.15 2.8 Q-4.23 .4 -6.1 -4.6Z",detail?"#73807a":"#4a6165");
     path(c,"M-5.34 -4.3 Q-10.1 -7.49 -8.6 -13.14 Q-6.55 -18.28 -.3 -19.7 Q7.22 -21 9.81 -15.4 L9.38 -12.46 Q5.66 -14.98 3.33 -13.43 Q-.2 -11.71 -.8 -7.1 L-2.71 -5.08Z","#26333a");
-    if(t>51.7)ell(c,8.55,-9.3,1.06,.85,"#a7c2aa");
+    if(p.filmPose && detail){
+      const open=ease(50.9,52.34,t);
+      path(c,"M6.65 -10.82 Q7.92 -11.47 9.55 -10.91",null,"#4b5a55",.53);
+      path(c,"M7.13 -9.18 Q8.43 -8.69 9.64 -9.33",null,"#3e514f",.46);
+      if(open>.03)ell(c,8.55,-9.31,1.00,.23+.52*open,"#9baea2");
+    }else if(t>51.7)ell(c,8.55,-9.3,1.06,.85,"#a7c2aa");
     c.restore();
   },false,angle);
   sleeve("right",true);
-  return {...p,arms,legs};
+  const faceEdge=[[12.6,-7.63],[10.9,-5.5],[9.3,-.74],[7.7,3.3],[1.15,2.8]]
+    .map(point=>transform(add(headOrigin,rotate(point,headAngle))));
+  return {...p,arms,legs,faceEdge};
 }
 
 function impactSplash(c,t) {
@@ -276,7 +302,7 @@ function impactSplash(c,t) {
   }
 }
 
-function fallScene(c,t) {
+function fallScene(c,t,{wideGrip=false}={}) {
   night(c);
   const release=events.railRelease;
   const drop=clamp((t-release)/(events.impact-release));
@@ -286,7 +312,7 @@ function fallScene(c,t) {
   const x=lerp(522,559,ease(0,1,cameraDrop))+2.5*ease(30.25,33.68,t);
   const y=lerp(128,415,cameraDrop**2)+16*ease(events.impact,events.impact+.48,t)+shake;
   const zoom=1.09+.055*ease(28.1,33.92,t)-.215*ease(0,1,drop);
-  const actor=falling(t);
+  const actor=falling(t,wideGrip);
   let state;
   camera(c,x,y,zoom,()=>{
     facade(c,t);garden(c);
@@ -298,11 +324,11 @@ function fallScene(c,t) {
   return {...state,camera:{x,y,zoom}};
 }
 
-function planterScene(c,t) {
+function planterScene(c,t,{wideGrip=false}={}) {
   night(c);
   const watching=ease(events.brace,events.stand+.8,t);
   const creep=ease(37.34,46.32,t);
-  const actor=falling(t);
+  const actor=falling(t,wideGrip);
   let state;
   camera(c,550+27*creep+15*watching,421+4*creep-23*watching,1.48+.21*creep+.067*watching,()=>{
     facade(c,t);garden(c);
@@ -314,4 +340,40 @@ function planterScene(c,t) {
   return state;
 }
 
-module.exports={railDeck,railTop,soil,planter,bracedPalms,weightOnHands,handsOff,skyline,windowPOV,fallScene,planterScene};
+function detailScene(c,t,view) {
+  const actor=falling(t,true);
+  let state;
+  camera(c,view.x,view.y,view.zoom,()=>{
+    facade(c,t);
+    if(actor.railGrip){
+      for(const x of [475,497,516,537,553]){
+        const bead=(.5+.5*Math.sin(t*2.17+x))*.7+.3;
+        line(c,[[x-3.3,railTop-.62],[x+1.7,railTop-.62]],"rgba(160,182,184,.65)",.31);
+        ell(c,x+2.2,railTop+.90,.40,bead,"rgba(147,172,179,.74)");
+      }
+      const slip=ease(32.83,33.49,t);
+      if(t>32.35 && slip<1){
+        const y=railTop+1.6+36*slip*slip;
+        ell(c,552.4,y,.60,1.12,"rgba(167,190,191,.72)");
+      }
+    }
+    garden(c);
+    if(actor.phase==="brace"){
+      for(const [,palm] of Object.entries(actor.palms)){
+        ell(c,palm[0],soil-1.4,4.2,.83,"#262e2b");
+        for(let i=0;i<4;i++){
+          const pressure=ease(weightOnHands-.36,weightOnHands+.17,t);
+          const offset=(i%2?1:-1)*(3.8+rand(i+41)*3.4+pressure*.84);
+          ell(c,palm[0]+offset,soil-1.65-rand(i+78)*1.2,.59,.31,"#756a55");
+        }
+      }
+    }
+    state=visitor(c,actor,t,{detail:!actor.railGrip});
+    garden(c,true);
+    impactSplash(c,t);
+  });
+  rain(c,t,{strength:.62,count:70,seed:482});
+  return {...state,camera:view};
+}
+
+module.exports={railDeck,railTop,soil,planter,bracedPalms,weightOnHands,handsOff,skyline,windowPOV,fallScene,planterScene,detailScene};

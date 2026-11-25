@@ -1,12 +1,6 @@
 "use strict";
-const fs = require("node:fs");
-const canvasLib = require(process.env.APARTMENT_CANVAS || "@napi-rs/canvas");
-const {Path2D, GlobalFonts} = canvasLib;
-for (const [file, name] of [["msyh.ttc","FilmSans"],["msyhbd.ttc","FilmBold"]]) {
-  const url = (process.env.WINDIR || "C:/Windows") + "/Fonts/" + file;
-  if (fs.existsSync(url)) GlobalFonts.registerFromPath(url,name);
-}
-if (process.env.FILM_CJK_FONT) GlobalFonts.registerFromPath(process.env.FILM_CJK_FONT,"FilmSans");
+const canvasLib = require("./canvas-runtime.cjs");
+const {Path2D} = canvasLib;
 const clamp=(u,a=0,b=1)=>Math.min(b,Math.max(a,u));
 const lerp=(a,b,u)=>a+(b-a)*u;
 const ease=(a,b,t)=>{const u=clamp((t-a)/(b-a));return u*u*(3-2*u);};

@@ -1,0 +1,155 @@
+{
+  "fps": 30,
+  "durationInFrames": 2700,
+  "width": 1920,
+  "height": 1080,
+  "shots": [
+    {
+      "from": 0,
+      "id": "motor",
+      "name": "床头 · 木桌上的手机"
+    },
+    {
+      "from": 72,
+      "id": "block",
+      "name": "雨中的公寓"
+    },
+    {
+      "from": 161,
+      "id": "bed",
+      "name": "卧室 · 陈默惊醒"
+    },
+    {
+      "from": 248,
+      "id": "alert",
+      "name": "锁屏通知"
+    },
+    {
+      "from": 387,
+      "id": "wake",
+      "name": "陈默 · 床头反光"
+    },
+    {
+      "from": 465,
+      "id": "feet",
+      "name": "赤脚移向窗边"
+    },
+    {
+      "from": 550,
+      "id": "approach",
+      "name": "从背后靠近窗帘"
+    },
+    {
+      "from": 682,
+      "id": "window",
+      "name": "窗缝 · 街灯抬到护栏"
+    },
+    {
+      "from": 813,
+      "id": "balcony",
+      "name": "对楼 · 人在护栏外"
+    },
+    {
+      "from": 901,
+      "id": "grip",
+      "name": "护栏上的手"
+    },
+    {
+      "from": 1010,
+      "id": "balcony",
+      "name": "松手 · 下坠跟镜"
+    },
+    {
+      "from": 1121,
+      "id": "planter",
+      "name": "花坛落点"
+    },
+    {
+      "from": 1241,
+      "id": "witness",
+      "name": "窗边 · 陈默屏息"
+    },
+    {
+      "from": 1335,
+      "id": "planter",
+      "name": "回到同一处花坛"
+    },
+    {
+      "from": 1414,
+      "id": "brace",
+      "name": "手掌撑住湿土"
+    },
+    {
+      "from": 1516,
+      "id": "planter",
+      "name": "重心从手移到脚"
+    },
+    {
+      "from": 1691,
+      "id": "retreat",
+      "name": "陈默后退抵墙"
+    },
+    {
+      "from": 1832,
+      "id": "pane",
+      "name": "窗玻璃上的密雨"
+    },
+    {
+      "from": 1918,
+      "id": "listen",
+      "name": "陈默低声自语"
+    },
+    {
+      "from": 2058,
+      "id": "hide",
+      "name": "沿墙藏到沙发后"
+    },
+    {
+      "from": 2449,
+      "id": "door",
+      "name": "视线转向门口"
+    },
+    {
+      "from": 2530,
+      "id": "threshold",
+      "name": "门底 · 两声闷响"
+    }
+  ],
+  "motors": [
+    {
+      "from": 10,
+      "type": "long",
+      "volume": 0.82
+    },
+    {
+      "from": 35,
+      "type": "short",
+      "volume": 0.7
+    },
+    {
+      "from": 163,
+      "type": "short",
+      "volume": 0.5
+    },
+    {
+      "from": 187,
+      "type": "short",
+      "volume": 0.55
+    },
+    {
+      "from": 214,
+      "type": "short",
+      "volume": 0.47
+    }
+  ],
+  "siren": {
+    "from": 579,
+    "frames": 276,
+    "volume": 0.39
+  },
+  "breath": {
+    "from": 1641,
+    "frames": 41,
+    "volume": 0.23
+  }
+}

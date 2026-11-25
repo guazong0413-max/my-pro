@@ -4,6 +4,7 @@ const {clamp,lerp,ease,pulse,path,rect,round,ell,line,poly,text,grad,glow,place,
 const {W,H,floor,doors,ajar,stairX,events,camera,cue,expression,makeActor,draw,shadow,wristOf,facePoint,
   doorPose,wall,tiledFloor,nightRoom,meiRear,hallStairs,hall,letter,clock,powder,keyring,paintCap,cat}=require("./art.cjs");
 const {timing}=require("./blocking.cjs");
+const {route}=require("./route.cjs");
 
 const mixes={};
 function setPerformance(value){Object.assign(mixes,value);}
@@ -131,46 +132,6 @@ const secondWalk={dir:-1,initial:{left:[334,floor],right:[343,floor]},lands:even
   next:[[313,floor],[291,floor],[270,floor]],start:71.73};
 const stairWalk={dir:1,initial:{left:[244,186],right:[253,186]},lands:events.leaving,
   next:[[271,196],[293,207],[316,218]],start:87.81};
-function route(t, plan){
-  const {dir,initial,lands,next,start}=plan;
-  const current={left:initial.left,right:initial.right};
-  const average=()=>[(current.left[0]+current.right[0])/2,(current.left[1]+current.right[1])/2];
-  const rows=[[start,...average()]];
-  const schedules={left:[],right:[]};
-  for(let i=0;i<lands.length;i++){
-    const side=i%2?"right":"left";
-    schedules[side].push({origin:current[side],end:next[i],land:lands[i],off:i?lands[i-1]+.11:start});
-    current[side]=next[i];
-    rows.push([lands[i],...average()]);
-  }
-  const feet=Object.fromEntries(Object.keys(schedules).map(side=>{
-    let xy=initial[side],planted=true;
-    for(const k of schedules[side]){
-      if(t<k.off)break;
-      if(t<k.land){
-        const u=clamp((t-k.off)/(k.land-k.off));
-        const v=ease(0,1,u);
-        xy=[lerp(k.origin[0],k.end[0],v),lerp(k.origin[1],k.end[1],u)-3.25*Math.sin(u*Math.PI)];
-        planted=false;
-        break;
-      }
-      xy=k.end;
-    }
-    return [side,{xy,planted}];
-  }));
-  const i=rows.findIndex(r=>r[0]>t);
-  let root;
-  if(i<0)root=rows.at(-1).slice(1);
-  else if(!i)root=rows[0].slice(1);
-  else{
-    const a=rows[i-1], b=rows[i], u=clamp((t-a[0])/(b[0]-a[0]));
-    const progress=lerp(u,ease(0,1,u),i===1||i===rows.length-1?.37:.12);
-    root=[lerp(a[1],b[1],progress),lerp(a[2],b[2],progress)];
-  }
-  const swing=clamp((feet.right.xy[0]-feet.left.xy[0])*dir/23,-1,1)*3.5*
-    pulse(start-.14,start+.20,lands.at(-1)-.20,lands.at(-1)+.22,t);
-  return {root,feet,swing};
-}
 function yuWalking(t,plan=firstWalk,small=.745,state="alert"){
   const move=route(t,plan);
   const [x,y]=move.root;

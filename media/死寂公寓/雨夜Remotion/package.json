@@ -1,0 +1,15 @@
+{
+  "name": "apartment-rain-remotion",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "studio": "remotion studio src/index.jsx",
+    "render": "remotion render src/index.jsx RainNight 雨夜-第二声-Remotion.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k --image-format=jpeg --jpeg-quality=90 --concurrency=5"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.547",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.547"
+  }
+}

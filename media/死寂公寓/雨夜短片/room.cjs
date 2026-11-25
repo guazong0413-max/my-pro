@@ -2,8 +2,8 @@
 
 const {lerp,ease,pulse,path,rect,round,ell,line,poly,text,grad,glow,place}=require("../开篇九十秒/drawing.cjs");
 const {makeActor,wristOf}=require("../门前的面粉/art.cjs");
-const {route}=require("../门前的面粉/scenes.cjs");
-const {bodyPoint,headPoint,continuousLimb,sole}=require("../人物动作/rig.cjs");
+const {route}=require("../门前的面粉/route.cjs");
+const {bodyPoint,headPoint,continuousLimb,solve,sole}=require("../人物动作/rig.cjs");
 const {W,H,camera,night,rain}=require("./art.cjs");
 const {events}=require("./story.json");
 
@@ -79,6 +79,12 @@ function room(c,t,opening=0) {
   rect(c,wallX+5,55,2,floor-55,"rgba(80,99,112,.18)");
   round(c,545,123,152,77,1.4,"#1d2b35","#344753",1.65);
   round(c,552,129,137,64,1.0,"#243641");
+  sofaAndTable(c);
+  entry(c);
+  glow(c,260,281,233,175,"rgba(102,132,155,.095)");
+}
+
+function sofaAndTable(c) {
   round(c,523,333,245,84,9,"#314454","#203141",1.4);
   round(c,515,362,259,60,6,"#384b5b");
   round(c,517,364,245,26,3,"#3e5360");
@@ -88,8 +94,6 @@ function room(c,t,opening=0) {
   round(c,550,405,162,8,2.6,"#665446");
   rect(c,558,412,4,30,"#473a33");
   rect(c,702,412,4,30,"#473a33");
-  entry(c);
-  glow(c,260,281,233,175,"rgba(102,132,155,.095)");
 }
 
 function entry(c) {
@@ -278,26 +282,35 @@ function firstSteps(c,t) {
   return {actor:a,mode:"forward"};
 }
 
-function approachWindow(c,t){
+function approachWindow(c,t,{atGlass=false}={}){
   const approach=ease(18.33,22.55,t);
-  const opening=.17;
-  const lean=14*approach;
-  const rootX=376, targetX=(261-71*opening+curtainX(opening))*.5;
-  camera(c,341-12*approach,224-19*approach,1.42+.32*approach,()=>{
+  const opening=atGlass?lerp(.17,openAmount,ease(events.curtainOpen,23.55,t)):.17;
+  const lean=atGlass?7+13*approach:14*approach;
+  const rootX=atGlass?306:376, targetX=(261-71*opening+curtainX(opening))*.5;
+  camera(c,atGlass?271+5*approach:341-12*approach,atGlass?260+3*approach:224-19*approach,1.42+.32*approach,()=>{
     room(c,t,opening);
     place(c,rootX,floor,1.025,()=>{
+      c.save();
+      if(atGlass)c.transform(1,0,lean/159,1,0,0);
       path(c,"M-23 -140 Q-33 -128 -33 -111 L-26 -72 L-31 2 H31 L32 -63 L33 -111 Q32 -132 21 -138 L7 -147 L-8 -145Z",
         grad(c,-28,-132,28,-88,[[0,"#303e49"],[1,"#182732"]]));
       path(c,"M-13 -143 Q-.5 -138 11 -144 L15 -137 Q1 -129 -15 -137Z","#35444e");
       line(c,[[-21,-134],[-25,-109],[-23,-84]],"#44535c",.58);
+      c.restore();
       place(c,-lean,-159,1,()=>{
         path(c,"M-5.2 5 L7.5 5.4 L9 19.4 Q1 23.1 -7.5 18.8Z","#3b4b53");
         path(c,"M-19 -5 Q-18 -17 -8.3 -22 Q.4 -27 10.8 -21 Q21 -15 18.7 -3 Q17.5 6 11.8 10.8 Q6.1 15.5 -4.9 14 Q-14.4 13.4 -17.9 5.2Z","#19242e");
         path(c,"M-15.7 -8 Q-13.3 -20 -2.4 -22.5 Q7.2 -24 12.5 -18",null,"#424d55",.83);
       });
+      if(atGlass && opening>.79){
+        const wrist=[(curtainX(opening)-rootX)/1.025,(curtainHandY-floor)/1.025];
+        const arm=solve([17-lean*.76,-126],wrist,22,21,1);
+        continuousLimb(c,arm,[6.4,4.8,3.0],"#32414a");
+        ell(c,...arm.end,3.1,3.5,"#626d6c");
+      }
     });
   });
-  return {view:"rear-to-window",targetX,opening,left:261-71*opening,right:curtainX(opening)};
+  return {view:"rear-to-window",targetX,opening,headX:rootX-lean,left:261-71*opening,right:curtainX(opening)};
 }
 
 function pullAway(c,t) {
@@ -313,7 +326,7 @@ function pullAway(c,t) {
   return {actor:a,mode:"backing",curtain:{grip,take,opening},wallX};
 }
 
-function hide(c,t) {
+function hide(c,t,{behindSofa=false}={}) {
   const stand=33*(1-ease(68.79,69.42,t)), sink=45*ease(74.54,75.68,t);
   const turning=t<69.20;
   const a=fromGait(t,hidePlan,{dir:turning?-1:1,drop:stand+sink,
@@ -323,6 +336,7 @@ function hide(c,t) {
   camera(c,480+.45*track+drift,270+11*ease(73.7,80.3,t),1.00+.11*ease(69.15,75.92,t),()=>{
     room(c,t);
     roomShadow(c,a);hero(c,a,t,{alert:.38});
+    if(behindSofa)sofaAndTable(c);
   });
   return {actor:a,mode:turning?"turn":"forward"};
 }
