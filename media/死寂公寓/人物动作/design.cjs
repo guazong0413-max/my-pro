@@ -108,5 +108,5 @@ function writeSheets(root) {
   }
 }
 
-if (require.main === module) writeSheets(path.join(__dirname, "设计图"));
+if (require.main === module) writeSheets(process.argv[2] ?? path.join(__dirname, "设计图"));
 module.exports = {fonts, accent};

@@ -1,6 +1,7 @@
 "use strict";
 
-const {path, round, ell} = require("../开篇九十秒/drawing.cjs");
+const {path, round, ell, line} = require("../开篇九十秒/drawing.cjs");
+const {SKIN} = require("../隔门一瓶水/characters/faces.cjs");
 const {models} = require("../隔门一瓶水/characters/models.cjs");
 const {faceParts, poseFor, restOffset} = require("../隔门一瓶水/characters/reference-style/face.cjs");
 
@@ -22,6 +23,17 @@ const sole = {
   mei: {flat: 6.15, heel: [-4.5, 5.88], toe: [12.25, 5.78]},
   xu: {flat: 6.63, heel: [-4.3, 6.27], toe: [10.38, 6.28]},
   uncle: {flat: 7.47, heel: [-5.7, 7.24], toe: [14.15, 7.44]}
+};
+
+const clothes = {
+  yu: {arm: [5.9, 4.55, 2.85], leg: [6.4, 4.22, 3.16], hand: [3.2, 2.85],
+    sleeve: "#526071", farSleeve: "#44505f", pants: "#3e4b5c", farPants: "#313c4a"},
+  mei: {arm: [5.65, 4.25, 2.66], leg: [5.85, 3.84, 2.99], hand: [3.1, 2.65],
+    sleeve: "#9c794d", farSleeve: "#806242", pants: "#424757", farPants: "#323945"},
+  xu: {arm: [4.0, 3.03, 1.91], leg: [4.25, 3.06, 2.11], hand: [2.55, 2.36],
+    sleeve: "#507b98", farSleeve: "#3c5f76", pants: "#456984", farPants: "#33526a"},
+  uncle: {arm: [7.3, 5.6, 3.45], leg: [6.95, 4.75, 3.45], hand: [3.65, 3.2],
+    sleeve: "#566446", farSleeve: "#535d46", pants: "#505951", farPants: "#414846"}
 };
 
 const index = Object.fromEntries(models.map(model => [model.id, Object.fromEntries(
@@ -70,7 +82,7 @@ function restFoot(rig, side, ground = rig.ground, x = rig.x + rig.parts.get(`${s
   return {point: [x, ground - sole[rig.id].flat], angle: 0, marker: [x + 2, ground], contact: "flat"};
 }
 
-function fitPelvis(rig, feet) {
+function fitPelvis(rig, feet, {raise = false, cushioning = 0} = {}) {
   const minimumDrop = Math.max(...sides.map(side => {
     const [hip, knee, ankle] = limbParts(rig, side, "leg").map(part => part.pivot);
     const origin = bodyPoint(rig, hip);
@@ -78,7 +90,7 @@ function fitPelvis(rig, feet) {
     const limit = distance(hip, knee) + distance(knee, ankle) - .15;
     return dy - Math.sqrt(Math.max(0, limit * limit - dx * dx));
   }));
-  rig.drop += Math.max(0, minimumDrop);
+  rig.drop += (raise ? minimumDrop : Math.max(0, minimumDrop)) + cushioning;
 }
 
 function placeLimbs(rig, feet, hands = {}) {
@@ -94,9 +106,8 @@ function placeLimbs(rig, feet, hands = {}) {
     const [shoulder, elbow, wrist] = arm.map(part => part.pivot);
     const hand = hands[side];
     const target = hand?.point ?? bodyPoint(rig, wrist);
-    const result = solve(bodyPoint(rig, shoulder), target, distance(shoulder, elbow), distance(elbow, wrist), hand?.bend ?? 1);
-    const follow = direction(sub(result.end, result.middle)) - direction(sub(wrist, elbow));
-    rig.arms[side] = {...result, parts: arm, angle: hand?.angle ?? follow};
+    const result = solve(bodyPoint(rig, shoulder), target, distance(shoulder, elbow), distance(elbow, wrist), 1);
+    rig.arms[side] = {...result, parts: arm};
   }
   return rig;
 }
@@ -135,10 +146,60 @@ function drawPart(ctx, part, position, angle) {
   ctx.restore();
 }
 
-function drawLimb(ctx, {parts: [upper, lower, endPart], start, middle, end, angle}, drawEnd) {
-  drawPart(ctx, upper, start, direction(sub(middle, start)) - direction(sub(lower.pivot, upper.pivot)));
-  drawPart(ctx, lower, middle, direction(sub(end, middle)) - direction(sub(endPart.pivot, lower.pivot)));
-  if (drawEnd) drawPart(ctx, endPart, end, angle);
+function normal(a, b){
+  const [x,y]=sub(b,a);
+  const d=Math.hypot(x,y);
+  return [-y/d,x/d];
+}
+
+function continuousLimb(ctx, {start, middle, end}, [top, joint, cuff], fill) {
+  const n0=normal(start,middle), n1=normal(middle,end);
+  const blended=add(n0,n1), length=Math.hypot(...blended);
+  const unit=length>1e-6?blended.map(x=>x/length):n0;
+  const a=mixPoint(start,middle,.72), b=mixPoint(middle,end,.24);
+  const side=(v,n,w)=>[v[0]+n[0]*w,v[1]+n[1]*w];
+  ctx.beginPath();
+  ctx.moveTo(...side(start,n0,top));
+  ctx.lineTo(...side(a,n0,joint));
+  ctx.quadraticCurveTo(...side(middle,unit,joint),...side(b,n1,joint));
+  ctx.lineTo(...side(end,n1,cuff));
+  ctx.lineTo(...side(end,n1,-cuff));
+  ctx.lineTo(...side(b,n1,-joint));
+  ctx.quadraticCurveTo(...side(middle,unit,-joint),...side(a,n0,-joint));
+  ctx.lineTo(...side(start,n0,-top));
+  ctx.closePath();
+  ctx.fillStyle=fill;
+  ctx.fill();
+}
+
+function drawLeg(ctx, rig, side) {
+  const c=clothes[rig.id], leg=rig.legs[side];
+  continuousLimb(ctx,leg,c.leg,side==="right"?c.pants:c.farPants);
+  if(rig.id==="xu"&&side==="right"){
+    line(ctx,[mixPoint(leg.start,leg.middle,.18),leg.middle,mixPoint(leg.middle,leg.end,.87)],"#bdc9ca",.75);
+  }
+  drawPart(ctx,leg.parts[2],leg.end,leg.angle);
+}
+
+function drawSleeve(ctx, rig, side) {
+  const c=clothes[rig.id], arm=rig.arms[side];
+  const near=side==="right";
+  continuousLimb(ctx,arm,near?c.arm:c.arm.map(w=>w*.91),near?c.sleeve:c.farSleeve);
+  if(rig.id==="xu"&&near){
+    ctx.beginPath();
+    ctx.moveTo(...mixPoint(arm.start,arm.middle,.22));
+    ctx.lineTo(...mixPoint(arm.start,arm.middle,.78));
+    ctx.quadraticCurveTo(...arm.middle,...mixPoint(arm.middle,arm.end,.24));
+    ctx.lineTo(...mixPoint(arm.middle,arm.end,.78));
+    ctx.strokeStyle="#d1d7cf";
+    ctx.lineWidth=.78;
+    ctx.stroke();
+  }
+}
+
+function drawHand(ctx, rig, side) {
+  const skin=SKIN[rig.id], {end}=rig.arms[side];
+  ell(ctx,...end,...clothes[rig.id].hand,side==="right"?skin.main:skin.shade);
 }
 
 function drawHead(ctx, rig, headset = false) {
@@ -154,21 +215,25 @@ function drawHead(ctx, rig, headset = false) {
   ctx.restore();
 }
 
-function drawActor(ctx, rig, {omitHands = [], overLegs, headset = false, handOverHead = false} = {}) {
-  for (const side of sides) drawLimb(ctx, rig.legs[side], true);
+function drawFarArm(ctx, rig) {
+  drawSleeve(ctx, rig, "left");
+  drawHand(ctx, rig, "left");
+}
+
+function drawActor(ctx, rig, {overLegs, beforeNearHand, headset = false, farHandForward = false} = {}) {
+  for (const side of sides) drawLeg(ctx, rig, side);
   overLegs?.();
-  drawLimb(ctx, rig.arms.left, !omitHands.includes("left"));
+  if (!farHandForward) drawFarArm(ctx, rig);
   ctx.save();
   ctx.translate(...bodyPoint(rig, [0, 0]));
   ctx.rotate(rig.lean);
   shapes(ctx, rig.parts.get("torso").items);
   ctx.restore();
-  drawLimb(ctx, rig.arms.right, !omitHands.includes("right") && !handOverHead);
   drawHead(ctx, rig, headset);
-  if (handOverHead) {
-    const {parts, end, angle} = rig.arms.right;
-    drawPart(ctx, parts[2], end, angle);
-  }
+  if (farHandForward) drawFarArm(ctx, rig);
+  drawSleeve(ctx, rig, "right");
+  beforeNearHand?.();
+  drawHand(ctx, rig, "right");
 }
 
 module.exports = {radians, add, sub, mixPoint, rotate, distance, sides, sole, restFoot,

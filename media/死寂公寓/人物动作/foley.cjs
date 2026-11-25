@@ -1,6 +1,6 @@
 "use strict";
 
-const {FPS, shots, frames, footsteps} = require("./motion.cjs");
+const {FPS, shots, frames, footsteps, mealEvents, ear} = require("./motion.cjs");
 
 const RATE = 48_000;
 const TAU = 2 * Math.PI;
@@ -94,11 +94,11 @@ function wav() {
       add(shot, 7.15, .25, .46, .18, (t, hi, lo) => plastic(t, hi, lo, true));
       add(shot, 7.43, .12, .055, .18, (t, hi, lo) => plastic(t, hi, lo, false));
     } else if (shot.id === "meal") {
-      add(shot, 2.55, .24, .13, .05, (t, hi, lo) => ceramic(t, hi, lo, [990, 1855, 2813]));
-      add(shot, 7.87, .30, .24, .06, (t, hi, lo) => ceramic(t, hi, lo, [1191, 2340, 3431]));
+      add(shot, mealEvents.scoop, .24, .13, .05, (t, hi, lo) => ceramic(t, hi, lo, [990, 1855, 2813]));
+      add(shot, mealEvents.set, .30, .24, .06, (t, hi, lo) => ceramic(t, hi, lo, [1191, 2340, 3431]));
     } else if (shot.id === "listen") {
       add(shot, 1.21, .43, .26, .62, tap, .19);
-      add(shot, 3.17, .16, .10, -.16, (t, hi, lo) => plastic(t, hi, lo, false));
+      add(shot, ear.contact, .16, .10, -.16, (t, hi, lo) => plastic(t, hi, lo, false));
       add(shot, 3.90, .38, .18, .53, tap, .27);
     }
   }

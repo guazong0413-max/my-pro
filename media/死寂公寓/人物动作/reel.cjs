@@ -13,16 +13,16 @@ const {foreground} = require("./props.cjs");
 const {wav} = require("./foley.cjs");
 
 function camera(id, t) {
-  if (id === "walk") return [212 + 53 * ease(1.15, 5.7, t), 133, 2.22];
+  if (id === "walk") return [211, 133, 2.23];
   if (id === "bottle") {
     if (t >= 1.39 && t < 8.45) return [239 + 6.9 * ease(4.7, 7.17, t), 122, 4.22];
     return [239, 134, 2.28];
   }
   if (id === "meal") {
-    if (t >= 1.54 && t < 8.71) return [229.8, 155, 5.31 + .23 * ease(1.54, 4.24, t)];
+    if (t >= 1.54 && t < 8.71) return [229, 157, 4.85 + .15 * ease(1.54, 4.24, t)];
     return [227, 168, 2.81];
   }
-  if (t >= 2.52) return [203 + 2 * ease(2.52, 5.5, t), 99.5, 5.05 + .23 * ease(2.52, 6.3, t)];
+  if (t >= 2.52) return [211, 102, 4.83];
   return [217, 134, 2.30];
 }
 
