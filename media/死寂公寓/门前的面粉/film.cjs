@@ -86,21 +86,21 @@ function argument(name,fallback){
   const i=process.argv.indexOf(name);
   return i<0?fallback:process.argv[i+1];
 }
-async function renderMovie(canvas,draw,audio,dest){
+async function renderMovie(canvas,draw,audio,dest,{fps=story.fps,duration=story.duration}={}){
   const tool=process.env.FFMPEG||"ffmpeg";
   const child=spawn(tool,[
     "-hide_banner","-loglevel","error","-nostdin","-y","-f","rawvideo","-pixel_format","rgba",
-    "-video_size",canvas.width+"x"+canvas.height,"-framerate",String(story.fps),"-i","pipe:0","-i",audio,
+    "-video_size",canvas.width+"x"+canvas.height,"-framerate",String(fps),"-i","pipe:0","-i",audio,
     "-map","0:v:0","-map","1:a:0","-vf","scale=out_color_matrix=bt709:out_range=tv,format=yuv420p",
     "-colorspace","bt709","-color_primaries","bt709","-color_trc","bt709","-color_range","tv",
     "-c:v","libx264","-preset","veryfast","-crf","17","-threads","6","-c:a","aac","-b:a","192k",
-    "-ar","48000","-t",String(story.duration),"-movflags","+faststart",dest
+    "-ar","48000","-t",String(duration),"-movflags","+faststart",dest
   ],{stdio:["pipe","ignore","inherit"]});
   const stream=once(child,"exit");
-  const last=Math.round(story.duration*story.fps);
+  const last=Math.round(duration*fps);
   async function* images(){
     for(let i=0;i<last;i++){
-      draw(i/story.fps);
+      draw(i/fps);
       yield canvas.data();
       if((i+1)%300===0)console.log((i+1)+"/"+last+" frames");
     }
@@ -135,4 +135,4 @@ async function main(){
   await renderMovie(canvas,draw,audio,dest);
 }
 if(require.main===module)main().catch(error=>{console.error(error);process.exitCode=1;});
-module.exports={createRenderer};
+module.exports={createRenderer,renderMovie};

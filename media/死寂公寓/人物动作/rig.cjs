@@ -260,4 +260,4 @@ function drawActor(ctx, rig, {overLegs, beforeNearHand, headset = false} = {}) {
 }
 
 module.exports = {radians, add, sub, mixPoint, rotate, distance, sides, sole, restFoot,
-  createRig, bodyPoint, headPoint, fitPelvis, placeLimbs, drawActor, drawHead, drawSleeve, drawHand};
+  createRig, bodyPoint, headPoint, fitPelvis, placeLimbs, solve, continuousLimb, drawActor, drawHead, drawSleeve, drawHand};

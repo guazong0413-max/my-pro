@@ -147,7 +147,7 @@ def tighten_pauses(data, rate, allowed, role):
     return np.concatenate([*parts, data[cursor:]])
 
 
-def take(row, ffmpeg, voice_dir):
+def take(row, ffmpeg, voice_dir, presets=PRESET):
     rate, raw = wavfile.read(voice_dir/(row["id"]+".wav"))
     assert raw.ndim == 1 and raw.dtype == np.int16, row["id"]
     data = raw.astype(np.float32)/32768
@@ -175,7 +175,7 @@ def take(row, ffmpeg, voice_dir):
                            "-af",audio_filter,"-ar",str(RATE),"-f","f32le","pipe:1"],
                           input=data.astype("<f4").tobytes(),stdout=subprocess.PIPE,check=True)
     data = np.frombuffer(proc.stdout,dtype="<f4").copy()
-    low,high,target,pan = PRESET[row["role"]]
+    low,high,target,pan = presets[row["role"]]
     data = band(data,low,high)
     samples = round(allowed*RATE)
     if len(data) > samples:

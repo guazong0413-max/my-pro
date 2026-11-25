@@ -351,4 +351,4 @@ const scenes=[
   leave,
   (c,t)=>t<87.75?keys(c,t):descent(c,t)
 ];
-module.exports={scenes,setPerformance};
+module.exports={scenes,setPerformance,route};
