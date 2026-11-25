@@ -1,0 +1,179 @@
+{
+  "sounds": [
+    {
+      "id": "rain",
+      "name": "01-雨打窗台",
+      "seconds": 24,
+      "lufs": -24,
+      "reference": {
+        "author": "Erbsland-Music",
+        "title": "Rain on Metal Window Ledge",
+        "page": "https://freesound.org/people/Erbsland-Music/sounds/428605/",
+        "license": "CC0 1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "from": 16,
+        "preview": "https://cdn.freesound.org/previews/428/428605_522747-hq.mp3",
+        "sha256": "000ef652d93c5d7c5cce48c0d6b5c688aebc9479e6cb920548c736f70b55943e"
+      },
+      "audition": {
+        "a_at": 0,
+        "b_at": 6,
+        "seconds": 5.5,
+        "a_from": 4,
+        "b_from": 6
+      }
+    },
+    {
+      "id": "wind",
+      "name": "02-风过树梢",
+      "seconds": 24,
+      "lufs": -24,
+      "reference": {
+        "author": "Anya_Media",
+        "title": "Forest, close up of trees rustling in the wind.wav",
+        "page": "https://freesound.org/people/Anya_Media/sounds/523389/",
+        "license": "CC0 1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "from": 33,
+        "preview": "https://cdn.freesound.org/previews/523/523389_2010973-hq.mp3",
+        "sha256": "80eb06d3a6b4d8e00f89d9cd20f4d0262b90714ca7bf4603238ec5e51d8e5b2c"
+      },
+      "audition": {
+        "a_at": 13,
+        "b_at": 21,
+        "seconds": 7.5,
+        "a_from": 4.4,
+        "b_from": 5.6
+      }
+    },
+    {
+      "id": "police",
+      "name": "03-警车驶过",
+      "seconds": 9.2,
+      "lufs": -21.5,
+      "reference": {
+        "author": "JW_Audio",
+        "title": "VEHSirn_Police Car, Siren, _JW Audio",
+        "page": "https://freesound.org/people/JW_Audio/sounds/853022/",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "from": 0.12,
+        "preview": "https://cdn.freesound.org/previews/853/853022_13183432-hq.mp3",
+        "sha256": "7551a4bdbeae278b85281d69a01ebd860c8eb6a57a92c5293f136311edf58211"
+      },
+      "audition": {
+        "a_at": 30,
+        "b_at": 39,
+        "seconds": 8.5,
+        "a_from": 0.32,
+        "b_from": 0.32
+      }
+    },
+    {
+      "id": "ambulance",
+      "name": "04-救护车驶过",
+      "seconds": 12,
+      "lufs": -21.5,
+      "reference": {
+        "author": "Breviceps",
+        "title": "German Ambulance #2",
+        "page": "https://freesound.org/people/Breviceps/sounds/541595/",
+        "license": "CC0 1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "from": 0.8,
+        "preview": "https://cdn.freesound.org/previews/541/541595_9159316-hq.mp3",
+        "sha256": "056a714ec9eb06e65ca40d64710fb9e0434528011656d55103444a3d637c6799"
+      },
+      "audition": {
+        "a_at": 49,
+        "b_at": 60,
+        "seconds": 10.5,
+        "a_from": 0.7,
+        "b_from": 0.7
+      }
+    },
+    {
+      "id": "gasp",
+      "name": "05-受惊短呼",
+      "seconds": 1.35,
+      "lufs": -21.5,
+      "reference": {
+        "author": "esperar",
+        "title": "surprise_gasps.wav",
+        "page": "https://freesound.org/people/esperar/sounds/171942/",
+        "license": "CC0 1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "from": 3.48,
+        "preview": "https://cdn.freesound.org/previews/171/171942_377731-hq.mp3",
+        "sha256": "27ce9472df84d1dc532108b1c7ccfd41b05cb7fb507dae9683dbc35163f77c78"
+      },
+      "audition": {
+        "a_at": 72,
+        "b_at": 74,
+        "seconds": 1.35,
+        "a_from": 0,
+        "b_from": 0
+      }
+    },
+    {
+      "id": "alarm",
+      "name": "06-床头电子闹铃",
+      "seconds": 6,
+      "lufs": -24,
+      "reference": {
+        "author": "bcginn",
+        "title": "Alarm Clock.wav",
+        "page": "https://freesound.org/people/bcginn/sounds/185708/",
+        "license": "CC0 1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "from": 1,
+        "preview": "https://cdn.freesound.org/previews/185/185708_2793459-hq.mp3",
+        "sha256": "11f1a80ff3b8dbb5b415b20ccf1a7d4b659eb6bccc3812fd7fe875d72549a564"
+      },
+      "audition": {
+        "a_at": 77,
+        "b_at": 81,
+        "seconds": 3.5,
+        "a_from": 0,
+        "b_from": 0
+      }
+    },
+    {
+      "id": "buzz",
+      "name": "07-手机贴木桌震动",
+      "seconds": 3.72,
+      "lufs": -24,
+      "reference": {
+        "author": "steeltowngaming",
+        "title": "iPhone Vibrate on Wood Table",
+        "page": "https://freesound.org/people/steeltowngaming/sounds/537738/",
+        "license": "CC0 1.0",
+        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "from": 0.73,
+        "preview": "https://cdn.freesound.org/previews/537/537738_11976230-hq.mp3",
+        "sha256": "bf833433f210c2dcf7c82cbe26cca2cceb1b00cedd367ca9157b6fc9d5170289"
+      },
+      "audition": {
+        "a_at": 86,
+        "b_at": 90,
+        "seconds": 3.5,
+        "a_from": 0.08,
+        "b_from": 0.08
+      }
+    }
+  ],
+  "roles": {
+    "chen": {
+      "speaker": "Dylan"
+    }
+  },
+  "lines": [
+    {
+      "id": "gasp",
+      "role": "chen",
+      "text": "啊！",
+      "seed": 3281,
+      "instruct": "深夜楼上一直很安静，你眼看对面的人突然松手。身体本能地短促惊呼一声，一口气堵在喉头，刚出声就压住。近话筒，喉音带漏气，先吸一口气，一下收住，音量适中。"
+    }
+  ]
+}
