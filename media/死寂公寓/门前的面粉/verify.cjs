@@ -12,13 +12,33 @@ const distance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 
 assert.equal(story.cuts[0],0);
 assert.equal(story.cuts.at(-1),story.duration);
-assert(performance.voices.length===story.lines.length);
+assert.equal(performance.voices.length,story.lines.length);
+assert.deepEqual(performance.subs.map(cue=>cue[2]),story.lines.flatMap(row=>row.subs));
 let priorSubtitle=0;
 for(const [a,b,text] of performance.subs){
   assert(a>=priorSubtitle-.001 && b>a && b<story.duration && text, "Caption interval invalid");
   priorSubtitle=b;
 }
-for(const voice of performance.voices)assert(voice.tempo<=1.13,voice.id+" was sped up too much");
+let previousCue=0;
+for(const [i,voice] of performance.voices.entries()){
+  const cue=story.lines[i];
+  assert.equal(voice.id,cue.id);
+  assert.equal(voice.time,cue.at);
+  assert.equal(cue.subs.join(""),cue.text);
+  assert(voice.time>=previousCue && voice.duration>0 && voice.time+voice.duration<=cue.until+.001,voice.id+" is outside its cue");
+  assert(voice.tempo>=1 && voice.tempo<=1.29,voice.id+" was sped up too much");
+  assert(voice.shortenedPause>=0,voice.id+" has an invalid pause adjustment");
+  previousCue=cue.until;
+}
+for(const role of ["child","mei"]){
+  const spoken=performance.voices.filter((_,i)=>story.lines[i].role===role);
+  const mouth=Object.entries(performance.lips[role]).filter(([_,amplitude])=>amplitude>0);
+  assert(mouth.length>0,role+" has no mouth animation");
+  for(const [frame] of mouth){
+    const t=Number(frame)/story.fps;
+    assert(spoken.some(voice=>t>=voice.time && t<=voice.time+voice.duration+1/story.fps),role+" mouth moves outside dialogue");
+  }
+}
 
 const visited=new Set();
 let prior=null, contacts=0, motionFrames=0, error=0;

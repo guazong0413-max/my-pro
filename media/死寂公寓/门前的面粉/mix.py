@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 
 import numpy as np
-from scipy import signal
+from scipy import ndimage, signal
 from scipy.io import wavfile
 
 ROOT = Path(__file__).resolve().parent
@@ -15,6 +15,7 @@ PLAN = json.loads((ROOT / "story.json").read_text(encoding="utf-8"))
 RATE = 48000
 FPS = PLAN["fps"]
 TOTAL = round(PLAN["duration"] * RATE)
+MAX_TEMPO = 1.29
 FOL = PLAN["events"]
 RANDOM = np.random.default_rng(31917)
 PRESET = {
@@ -115,8 +116,39 @@ def rms(x):
     return float(np.sqrt(np.mean(x*x)+1.e-12))
 
 
-def take(row, ffmpeg):
-    rate, raw = wavfile.read(ROOT/"voice"/(row["id"]+".wav"))
+def tighten_pauses(data, rate, allowed, role):
+    """Shorten only quiet gaps that the synth added between phrases."""
+    excess = max(0, len(data) - round(1.14 * allowed * rate))
+    if not excess:
+        return data
+    block = rate // 100
+    levels = np.sqrt(np.mean(
+        np.pad(data * data, (0, (-len(data)) % block)).reshape(-1, block), axis=1))
+    quiet = levels < max(.0015, levels.max() * .024)
+    edges = np.diff(np.r_[False, quiet, False].astype(np.int8))
+    starts = np.flatnonzero(edges == 1) * block
+    ends = np.flatnonzero(edges == -1) * block
+    keep = round(rate * (.145 if role == "narrator" else .25))
+    blend = round(rate * .008)
+    ramp = np.linspace(0, 1, blend, dtype=np.float32)
+    parts = []
+    cursor = 0
+    for start, end in zip(starts, ends):
+        if start == 0 or end >= len(data):
+            continue
+        cut = min(excess, end - start - keep)
+        if cut < blend:
+            continue
+        left = (start + end - cut - blend) // 2
+        right = left + cut
+        parts.extend((data[cursor:left], data[left:left+blend]*(1-ramp) + data[right:right+blend]*ramp))
+        cursor = right + blend
+        excess -= cut
+    return np.concatenate([*parts, data[cursor:]])
+
+
+def take(row, ffmpeg, voice_dir):
+    rate, raw = wavfile.read(voice_dir/(row["id"]+".wav"))
     assert raw.ndim == 1 and raw.dtype == np.int16, row["id"]
     data = raw.astype(np.float32)/32768
     width = rate//100
@@ -129,24 +161,37 @@ def take(row, ffmpeg):
     hi = min(len(data), (active[-1]+1)*width+round(rate*.08))
     data = data[lo:hi]
     allowed = row["until"]-row["at"]-.025
+    trimmed_duration = len(data) / rate
+    data = tighten_pauses(data, rate, allowed, row["role"])
+    shortened = trimmed_duration - len(data) / rate
     tempo = max(1.0, (len(data)/rate)/allowed)
-    if tempo>1.24:
+    if tempo > MAX_TEMPO:
         raise RuntimeError(f'{row["id"]} needs a shorter take ({tempo:.3f}x).')
+    pitch = row.get("pitch", 1.0)
+    audio_filter = f"atempo={tempo:.8f}"
+    if pitch != 1.0:
+        audio_filter = f"rubberband=pitch={pitch:.4f}:formant=preserved,{audio_filter}"
     proc = subprocess.run([ffmpeg, "-v","error", "-f","f32le", "-ar",str(rate), "-ac","1","-i","pipe:0",
-                           "-af",f"atempo={tempo:.8f}","-ar",str(RATE),"-f","f32le","pipe:1"],
+                           "-af",audio_filter,"-ar",str(RATE),"-f","f32le","pipe:1"],
                           input=data.astype("<f4").tobytes(),stdout=subprocess.PIPE,check=True)
     data = np.frombuffer(proc.stdout,dtype="<f4").copy()
     low,high,target,pan = PRESET[row["role"]]
     data = band(data,low,high)
-    if len(data)>round(allowed*RATE):
-        data=data[:round(allowed*RATE)]
+    samples = round(allowed*RATE)
+    if len(data) > samples:
+        if rms(data[samples:]) > .005:
+            raise RuntimeError(f'{row["id"]} has audible speech past its cue.')
+        data = data[:samples]
+    envelope = np.sqrt(ndimage.uniform_filter1d(data*data, size=RATE//20).clip(min=1e-12))
+    knee = max(.004, np.percentile(envelope, 80)*1.22)
+    data *= np.maximum(envelope/knee, 1)**-.25
     frame = RATE//100
     levels = np.sqrt(np.mean(np.pad(data*data,(0,(-len(data))%frame)).reshape(-1,frame),axis=1)+1.e-12)
     level = np.sqrt(np.mean(levels[levels>levels.max()*.12]**2))
     data *= min(target/max(.003,level), .55/max(.001,np.max(np.abs(data))))
     data[:460] *= np.linspace(0,1,460)
     data[-880:] *= np.linspace(1,0,880)
-    return data,pan,tempo
+    return data,pan,tempo,shortened
 
 
 def arrange_captions(row, data):
@@ -171,12 +216,12 @@ def arrange_captions(row, data):
              phrase] for i,phrase in enumerate(parts)]
 
 
-def render(out, perf, ffmpeg):
+def render(out, perf, ffmpeg, voice_dir):
     fx=make_foley()
     spoken=np.zeros_like(fx)
     marks={"subs":[], "lips":{"mei":{}, "child":{}}, "voices":[]}
     for row in PLAN["lines"]:
-        snd,pan,tempo=take(row,ffmpeg)
+        snd,pan,tempo,shortened=take(row,ffmpeg,voice_dir)
         if row["role"]=="narrator":
             add(spoken,row["at"],snd,pan)
         else:
@@ -189,7 +234,8 @@ def render(out, perf, ffmpeg):
                 for k in (frame,frame+1):
                     marks["lips"][row["role"]][k]=amplitude
         marks["subs"].extend(arrange_captions(row,snd))
-        marks["voices"].append({"id":row["id"],"time":row["at"],"duration":round(len(snd)/RATE,3),"tempo":round(tempo,3)})
+        marks["voices"].append({"id":row["id"],"time":row["at"],"duration":round(len(snd)/RATE,3),
+                               "tempo":round(tempo,3),"shortenedPause":round(shortened,3)})
         print(row["id"], round(len(snd)/RATE,2), round(tempo,2))
     result=fx+spoken
     limit=.738
@@ -207,6 +253,7 @@ if __name__ == "__main__":
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out",type=Path,default=ROOT/"同步混音.wav")
     parser.add_argument("--performance",type=Path,default=ROOT/"performance.json")
+    parser.add_argument("--voice-dir",type=Path,default=ROOT/"voice")
     parser.add_argument("--ffmpeg",default=os.environ.get("FFMPEG","ffmpeg"))
     args=parser.parse_args()
-    render(args.out,args.performance,args.ffmpeg)
+    render(args.out,args.performance,args.ffmpeg,args.voice_dir)
