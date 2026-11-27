@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f3efe5">
+<title>风里的邮差 · 鳄鱼骑行短片</title>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:light;font-family:"DM Sans",ui-sans-serif,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#273b38;background:#f2eee4}
+body{margin:0;min-height:100svh;display:grid;align-content:center}
+main{width:min(1280px,94vw);margin:24px auto 36px}
+header,footer,.transport,.controls{display:flex;align-items:center}
+header{justify-content:space-between;padding:0 0 12px;border-bottom:1px solid #293f3a;margin-bottom:10px}
+h1{margin:0;font:650 clamp(24px,3vw,39px)/1.2 "Songti SC","STSong",Georgia,serif;letter-spacing:.09em}
+#counter{font:500 13px/1.1 ui-monospace,monospace;font-variant-numeric:tabular-nums;color:#50615a;white-space:nowrap}
+figure{margin:0;overflow:hidden;box-shadow:0 3px 14px #3c33251c;background:#d1bd95;position:relative;line-height:0}
+canvas{width:100%;height:auto;display:block;aspect-ratio:16/9}
+footer{gap:16px;justify-content:space-between;margin-top:13px}
+.controls,.transport{gap:8px}
+button{font:inherit;color:inherit;background:none;cursor:pointer;border:1px solid transparent;border-radius:4px}
+button:focus-visible,input:focus-visible{outline:2px solid #b65d42;outline-offset:4px}
+.icon{background:#f9f6ef;border-color:#c5c8bb;width:36px;height:34px;display:grid;place-items:center}
+.icon svg{width:18px;height:18px}
+.icon:hover{background:#e5e4d7}
+.track{display:block;width:100%;margin:9px 0 0;height:10px;accent-color:#a74936;cursor:pointer}
+.chapters{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.chapters button{padding:4px 8px;font-size:14px;display:flex;align-items:center;gap:6px;color:#56625b}
+.chapters button::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--tint)}
+.chapters button[aria-current=true]{border-color:#bac0b1;color:#203a32;background:#fbf9f1}
+#status{position:absolute;inset:0;display:grid;place-items:center;font-size:15px;color:#34473f;line-height:1.5;background:#eee8d8}
+#status[hidden]{display:none}
+@media(max-width:650px){main{width:100%;margin:15px auto}header,footer{margin-inline:12px}.track{width:calc(100% - 24px);margin-inline:auto}footer{align-items:flex-start;gap:5px}.chapters{gap:1px}.chapters button{padding:5px;font-size:12px}.controls{gap:4px}.icon{width:29px;height:29px}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>风里的邮差</h1><span id="counter">00:00 / 00:32</span></header>
+<figure>
+<canvas width="1600" height="900" role="img" aria-label="戴邮差帽、系红围巾的鳄鱼，骑着载有邮包的自行车，从晴日海港穿过雨巷、风峡，最后向极光雪原的邮筒投递信件。"></canvas>
+<div id="status" role="status">正在展开画卷…</div>
+</figure>
+<input class="track" id="scrub" type="range" min="0" max="32" step=".01" value="0" aria-label="播放进度">
+<footer>
+<div class="controls">
+<button id="play" class="icon" type="button" title="暂停" aria-label="暂停"><svg viewBox="0 0 20 20" aria-hidden="true"><path id="playmark" d="M5 3h3v14H5zm7 0h3v14h-3z" fill="currentColor"/></svg></button>
+<button id="sound" class="icon" type="button" title="开启原声" aria-label="开启原声" aria-pressed="false"><svg viewBox="0 0 22 20" aria-hidden="true"><path d="M2 7h4l5-4v14l-5-4H2z" fill="currentColor"/><path id="soundmark" d="m15 7 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"/></svg></button>
+</div>
+<nav class="chapters" aria-label="跳转场景">
+<button type="button" style="--tint:#dda944" data-scene="0">柠檬海港</button>
+<button type="button" style="--tint:#799386" data-scene="1">江南雨巷</button>
+<button type="button" style="--tint:#bf6038" data-scene="2">赤岩风峡</button>
+<button type="button" style="--tint:#267a91" data-scene="3">极光驿站</button>
+</nav>
+</footer>
+</main>
+<audio id="score" preload="none" src="art/ride.m4a"></audio>
+<script src="paint.js"></script>
+<script src="rider.js"></script>
+<script src="scenery.js"></script>
+<script src="film.js"></script>
+</body>
+</html>
